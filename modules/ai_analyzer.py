@@ -49,71 +49,71 @@ class RateLimitManager:
         self.last_reset = datetime.now()
         self.request_times = []
         self.token_usage = []
-        
+
         # Límites conservadores para gpt-4o-mini (Tier 1)
         self.MAX_REQUESTS_PER_MINUTE = 500  # Límite real es 3000, usamos margen
         self.MAX_TOKENS_PER_MINUTE = 150000  # Límite real es 200K, usamos margen
         self.PAUSE_THRESHOLD_REQUESTS = 450  # Pausar cuando lleguemos a 450 requests
         self.PAUSE_THRESHOLD_TOKENS = 130000  # Pausar cuando lleguemos a 130K tokens
-        
+
     def should_pause(self):
         """Determina si debemos hacer una pausa antes de la siguiente request"""
         now = datetime.now()
-        
+
         # Limpiar requests y tokens de hace más de 1 minuto
         self._cleanup_old_data(now)
-        
+
         current_requests = len(self.request_times)
         current_tokens = sum(self.token_usage)
-        
+
         print(f"📊 Rate limit actual: {current_requests}/{self.MAX_REQUESTS_PER_MINUTE} requests, {current_tokens}/{self.MAX_TOKENS_PER_MINUTE} tokens")
-        
+
         # Verificar si estamos cerca de los límites
         if current_requests >= self.PAUSE_THRESHOLD_REQUESTS:
             print(f"⚠️ Cerca del límite de requests ({current_requests}/{self.MAX_REQUESTS_PER_MINUTE})")
             return True, "requests"
-            
+
         if current_tokens >= self.PAUSE_THRESHOLD_TOKENS:
             print(f"⚠️ Cerca del límite de tokens ({current_tokens}/{self.MAX_TOKENS_PER_MINUTE})")
             return True, "tokens"
-            
+
         return False, None
-    
+
     def _cleanup_old_data(self, now):
         """Limpia datos de hace más de 1 minuto"""
         one_minute_ago = now - timedelta(minutes=1)
-        
+
         # Filtrar requests antiguos
         self.request_times = [t for t in self.request_times if t > one_minute_ago]
-        
+
         # Como token_usage corresponde 1:1 con request_times, mantener la misma longitud
         if len(self.token_usage) > len(self.request_times):
             self.token_usage = self.token_usage[-len(self.request_times):]
-    
+
     def record_request(self, tokens_used=0):
         """Registra una nueva request con su uso de tokens"""
         now = datetime.now()
         self.request_times.append(now)
         self.token_usage.append(tokens_used)
-        
+
         # Mantener solo el último minuto de datos
         self._cleanup_old_data(now)
-    
+
     def calculate_pause_time(self, limit_type):
         """Calcula cuánto tiempo pausar basado en el tipo de límite"""
         now = datetime.now()
-        
+
         if limit_type == "requests":
             # Encontrar la request más antigua dentro del minuto actual
             if self.request_times:
                 oldest_request = min(self.request_times)
                 time_until_reset = 60 - (now - oldest_request).total_seconds()
                 return max(time_until_reset + 5, 10)  # Mínimo 10 segundos de buffer
-        
+
         elif limit_type == "tokens":
             # Para tokens, hacer una pausa más conservadora
             return 30  # Pausa fija de 30 segundos
-            
+
         return 15  # Pausa por defecto
 
 # Instancia global del gestor de rate limiting
@@ -152,7 +152,7 @@ async def call_openai_with_retry(messages: list, max_tokens: int = 500) -> dict:
         print(f"⏱️ Pausando {pause_time:.1f} segundos para evitar rate limit...")
         await asyncio.sleep(pause_time)
         print(f"✅ Pausa completada, reanudando procesamiento...")
-    
+
     for attempt in range(MAX_RETRIES):
         try:
             print(f"🤖 Intento {attempt + 1}/{MAX_RETRIES} - Llamada a OpenAI...")
@@ -232,7 +232,7 @@ async def analyze_questions_parallel(text_chunks, questions, api_key, max_worker
 
     # Ejecutar análisis en paralelo
     loop = asyncio.get_event_loop()
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         tasks = [
             loop.run_in_executor(
                 executor, 
@@ -607,14 +607,14 @@ async def analyze_with_ai_parallel(text_fragments: List[str], custom_questions: 
                 # Delay más corto si estamos lejos de los límites, más largo si estamos cerca
                 current_requests = len(rate_limit_manager.request_times)
                 current_tokens = sum(rate_limit_manager.token_usage)
-                
+
                 if current_requests > 300 or current_tokens > 100000:
                     delay = random.uniform(3.0, 5.0)  # Delay más largo si estamos cerca de límites
                     print(f"⏱️ Delay extendido: {delay:.1f}s (cerca de límites)")
                 else:
                     delay = random.uniform(1.0, 2.5)  # Delay normal
                     print(f"⏱️ Delay normal: {delay:.1f}s")
-                
+
                 await asyncio.sleep(delay)
 
         except Exception as e:
@@ -634,14 +634,14 @@ async def analyze_with_ai_parallel(text_fragments: List[str], custom_questions: 
             })
 
     total_time = time.time() - start_time
-    
+
     # 📊 Información final del rate limiting
     final_requests = len(rate_limit_manager.request_times)
     final_tokens = sum(rate_limit_manager.token_usage)
-    
+
     print(f"✅ Análisis completado en {total_time:.2f} segundos")
     print(f"📊 Rate limiting final: {final_requests}/{rate_limit_manager.MAX_REQUESTS_PER_MINUTE} requests, {final_tokens}/{rate_limit_manager.MAX_TOKENS_PER_MINUTE} tokens")
-    
+
     # Agregar información de rate limiting a los resultados
     for result in results:
         if 'metricas_openai' in result:
