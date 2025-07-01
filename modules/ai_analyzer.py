@@ -232,7 +232,7 @@ async def analyze_questions_parallel(text_chunks, questions, api_key, max_worker
 
     # Ejecutar análisis en paralelo
     loop = asyncio.get_event_loop()
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
         tasks = [
             loop.run_in_executor(
                 executor, 
