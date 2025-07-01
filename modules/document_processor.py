@@ -21,6 +21,10 @@ import numpy as np
 from pdf2image import convert_from_bytes
 import pytesseract
 import openai
+import fitz  # PyMuPDF
+from pdf2image import convert_from_path
+import logging
+from pathlib import Path
 
 def preprocess_image_for_ocr(image):
     """Preprocesa imagen para OCR - VERSIÓN OPTIMIZADA"""
@@ -328,34 +332,128 @@ def extract_text_from_docx(file_content):
     except Exception:
         return ""
 
-def extract_text_from_image(file_content, api_key=None):
-    """Extrae texto de imágenes usando OCR"""
+def convert_and_clean_image(image_path: str) -> str:
+    """
+    Convierte la imagen a un formato compatible y retorna la ruta temporal
+    """
     try:
-        image = Image.open(io.BytesIO(file_content))
-        processed_image = preprocess_image_for_ocr(image)
+        # Abrir imagen con PIL (más robusto que ImageMagick)
+        with Image.open(image_path) as img:
+            # Convertir a RGB si es necesario (elimina transparencias, etc.)
+            if img.mode in ('RGBA', 'LA', 'P'):
+                background = Image.new('RGB', img.size, (255, 255, 255))
+                if img.mode == 'P':
+                    img = img.convert('RGBA')
+                background.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
+                img = background
+            elif img.mode != 'RGB':
+                img = img.convert('RGB')
 
-        ocr_text = ""
+            # Crear archivo temporal con formato PNG (más compatible)
+            temp_dir = tempfile.gettempdir()
+            temp_path = os.path.join(temp_dir, f"cleaned_image_{os.getpid()}.png")
+
+            # Guardar con alta calidad
+            img.save(temp_path, 'PNG', optimize=True, quality=95)
+
+            return temp_path
+
+    except Exception as e:
+        logging.error(f"Error convirtiendo imagen {image_path}: {str(e)}")
+        return image_path  # Retornar original si falla la conversión
+
+def extract_text_from_image(image_path: str) -> str:
+    """
+    Extrae texto de una imagen usando OCR con manejo robusto de errores
+    """
+    cleaned_image_path = None
+    try:
+        # Verificar que el archivo existe
+        if not os.path.exists(image_path):
+            logging.error(f"Archivo de imagen no encontrado: {image_path}")
+            return ""
+
+        # Convertir y limpiar imagen primero
+        cleaned_image_path = convert_and_clean_image(image_path)
+
+        # Configuración de Tesseract para mejor reconocimiento
+        custom_config = r'--oem 3 --psm 6 -c tessedit_char_whitelist=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.,;:!?()[]{}"\'-+=/\\ áéíóúñüÁÉÍÓÚÑÜ'
+
+        # Extraer texto de la imagen limpia
+        with Image.open(cleaned_image_path) as img:
+            text = pytesseract.image_to_string(img, config=custom_config, lang='spa+eng')
+
+        # Limpiar texto
+        text = text.strip()
+        text = '\n'.join(line.strip() for line in text.split('\n') if line.strip())
+
+        logging.info(f"✅ Texto extraído exitosamente de {image_path} ({len(text)} caracteres)")
+        return text
+
+    except Exception as e:
+        logging.error(f"❌ Error extrayendo texto de imagen {image_path}: {str(e)}")
+
+        # Intentar método alternativo con configuración básica
         try:
-            custom_config = r'--oem 3 --psm 6 -c tessedit_char_whitelist=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzáéíóúñüÁÉÍÓÚÑÜ.,;:()[]{}/$%-_@#&*+=<>?¿¡!|~^`"\' '
-            ocr_text = pytesseract.image_to_string(processed_image, lang='spa+eng', config=custom_config)
-        except Exception:
+            if cleaned_image_path and os.path.exists(cleaned_image_path):
+                with Image.open(cleaned_image_path) as img:
+                    text = pytesseract.image_to_string(img, lang='spa+eng')
+                    return text.strip()
+        except:
             pass
 
-        vision_text = ""
-        if api_key:
-            vision_text = extract_text_with_vision_api(image, api_key)
-
-        final_text = ""
-        if ocr_text.strip():
-            final_text += "=== TEXTO OCR ===\n" + ocr_text.strip() + "\n\n"
-
-        if vision_text.strip() and vision_text != ocr_text.strip():
-            final_text += "=== TEXTO VISION API ===\n" + vision_text.strip() + "\n\n"
-
-        return final_text if final_text.strip() else ""
-
-    except Exception:
         return ""
+
+    finally:
+        # Limpiar archivo temporal si se creó uno nuevo
+        if cleaned_image_path and cleaned_image_path != image_path:
+            try:
+                if os.path.exists(cleaned_image_path):
+                    os.remove(cleaned_image_path)
+            except:
+                pass
+
+def verify_and_repair_image(file_path: str) -> str:
+    """
+    Verifica si una imagen es válida y la repara si es necesario
+    """
+    try:
+        # Verificar extensión
+        file_ext = Path(file_path).suffix.lower()
+
+        # Extensiones soportadas
+        supported_formats = {'.png', '.jpg', '.jpeg', '.tiff', '.tif', '.bmp', '.gif', '.webp'}
+
+        if file_ext not in supported_formats:
+            logging.warning(f"Formato de imagen no soportado: {file_ext}")
+            return file_path
+
+        # Intentar abrir y validar
+        with Image.open(file_path) as img:
+            img.verify()  # Verificar integridad
+
+        # Si llegamos aquí, la imagen es válida
+        return file_path
+
+    except Exception as e:
+        logging.warning(f"Imagen dañada o formato incompatible {file_path}: {str(e)}")
+
+        # Intentar reparar convirtiendo a PNG
+        try:
+            with Image.open(file_path) as img:
+                # Crear nueva imagen limpia
+                temp_path = file_path.replace(Path(file_path).suffix, '_repaired.png')
+
+                if img.mode != 'RGB':
+                    img = img.convert('RGB')
+
+                img.save(temp_path, 'PNG')
+                logging.info(f"✅ Imagen reparada guardada en: {temp_path}")
+                return temp_path
+
+        except Exception as repair_error:
+            logging.error(f"❌ No se pudo reparar la imagen: {repair_error}")
+            return file_path
 
 def process_file(file_content, content_type, filename, api_key=None):
     """Procesa cualquier tipo de archivo y extrae texto"""
@@ -365,7 +463,23 @@ def process_file(file_content, content_type, filename, api_key=None):
         elif content_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
             return extract_text_from_docx(file_content)
         elif content_type.startswith("image/"):
-            return extract_text_from_image(file_content, api_key)
+            # Save the image to a temporary file
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp_file:
+                temp_file.write(file_content)
+                temp_file_path = temp_file.name
+            
+            # Verify and repair the image
+            verified_path = verify_and_repair_image(temp_file_path)
+            
+            # Extract text from the image
+            text = extract_text_from_image(verified_path)
+            
+            # Clean up the temporary file
+            os.remove(temp_file_path)
+            if verified_path != temp_file_path and os.path.exists(verified_path):
+                os.remove(verified_path)
+            
+            return text
         else:
             try:
                 if isinstance(file_content, bytes):
