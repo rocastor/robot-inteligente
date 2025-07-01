@@ -384,10 +384,17 @@ def get_drive_client():
     try:
         print(f"🔧 Inicializando cliente de Google Drive...")
 
-        # Obtener credenciales desde variable de entorno
-        credentials_json = os.getenv('GOOGLE_CREDENTIALS')
+        # Obtener credenciales usando el sistema robusto
+        from config import get_google_credentials
+        credentials_json = get_google_credentials()
+        
         if not credentials_json:
-            print("⚠️ GOOGLE_CREDENTIALS no configurado - usando almacenamiento local")
+            print("⚠️ Google Credentials no configurado en ninguna fuente")
+            print("💡 Configurar usando:")
+            print("   - Variables de entorno (GOOGLE_CREDENTIALS)")
+            print("   - Archivo config.json")
+            print("   - Archivo google_credentials.json")
+            print("   - Replit Secrets")
             return None
 
         print(f"🔐 Autenticando con Google Drive...")
@@ -477,13 +484,18 @@ def test_google_drive_connection():
     try:
         print("🔧 Iniciando test de Google Drive...")
 
-        # Verificar credenciales
-        credentials_json = os.getenv('GOOGLE_CREDENTIALS')
+        # Verificar credenciales usando sistema robusto
+        from config import get_google_credentials, config_manager
+        credentials_json = get_google_credentials()
+        
         if not credentials_json:
-            print("❌ GOOGLE_CREDENTIALS no configurado")
+            config_status = config_manager.get_configuration_status()
+            print("❌ Google Credentials no configurado en ninguna fuente")
             return {
                 'success': False,
-                'message': 'GOOGLE_CREDENTIALS no configurado'
+                'message': 'Google Credentials no encontrado en ninguna fuente de configuración',
+                'sources_checked': config_status['sources_checked'],
+                'suggestion': 'Configurar Google Credentials en variables de entorno, config.json, o archivo JSON individual'
             }
 
         print(f"📋 Credenciales encontradas: {len(credentials_json)} caracteres")

@@ -19,6 +19,9 @@ from dotenv import load_dotenv
 # Cargar variables de entorno
 load_dotenv()
 
+# Sistema de configuración robusto
+from config import config_manager, get_openai_api_key, get_google_credentials, is_configured
+
 # Lazy imports - Los módulos se cargarán solo cuando se necesiten
 def lazy_import_document_processor():
     from modules.document_processor import process_file, chunk_text
@@ -42,9 +45,9 @@ def lazy_import_analytics():
 
 # Google Drive es el almacenamiento principal - S3 removido completamente
 
-# Configuración
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-GOOGLE_CREDENTIALS = os.getenv("GOOGLE_CREDENTIALS", "")
+# Configuración usando el sistema robusto
+OPENAI_API_KEY = get_openai_api_key() or ""
+GOOGLE_CREDENTIALS = get_google_credentials() or ""
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "")
 
@@ -201,6 +204,9 @@ async def health_check():
     # Google Drive ya verificado arriba
     modulos_estado["google_drive_client"] = "✅ ACTIVO" if google_drive_status["connected"] else "⚠️ NO CONECTADO"
 
+    # Estado de configuración del sistema robusto
+    config_status = config_manager.get_configuration_status()
+    
     return {
         "status": "ok",
         "version": "2.0.0",
@@ -216,7 +222,15 @@ async def health_check():
         "modulos_cargados": list(modulos_estado.keys()),
         "modulos_estado": modulos_estado,
         "modulos_activos": len([m for m in modulos_estado.values() if "✅ ACTIVO" in m]),
-        "modulos_total": len(modulos_estado)
+        "modulos_total": len(modulos_estado),
+        "configuracion_robusta": config_status,
+        "portable": config_status["fully_configured"],
+        "fuentes_configuracion": [
+            "Variables de entorno",
+            "Archivo config.json",
+            "Archivos JSON individuales",
+            "Replit Secrets (si aplica)"
+        ]
     }
 
 @app.get("/drive-links")
