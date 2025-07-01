@@ -1,0 +1,116 @@
+entrypoint = "main.py"
+modules = ["python-3.11"]
+
+[nix]
+channel = "stable-24_05"
+packages = ["freetype", "gcc-unwrapped", "glibcLocales", "gumbo", "harfbuzz", "jbig2dec", "jre", "lcms2", "libGL", "libGLU", "libimagequant", "libjpeg", "libjpeg_turbo", "libtiff", "libwebp", "libxcrypt", "mupdf", "openjpeg", "poppler_utils", "stdenv.cc.cc.lib", "swig", "tcl", "tesseract", "tk", "xcbuild", "zlib"]
+
+[unitTest]
+language = "python3"
+
+[gitHubImport]
+requiredFiles = [".replit", "replit.nix"]
+
+[deployment]
+run = ["python3", "main.py"]
+deploymentTarget = "cloudrun"
+
+[workflows]
+runButton = "Run Robot AI API Server"
+
+[[workflows.workflow]]
+name = "Run AI Robot"
+author = 42046066
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "uv run streamlit run main.py --server.address=0.0.0.0 --server.port=5000"
+
+[[workflows.workflow]]
+name = "Run AI Robot API"
+author = 42046066
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "uv run uvicorn main:app --host 0.0.0.0 --port 5000 --reload"
+
+[[workflows.workflow]]
+name = "Run Robot AI API"
+author = 42046066
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python main.py"
+
+[[workflows.workflow]]
+name = "Mantenimiento y Optimización"
+author = 42046066
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python cleanup_duplicated_files.py"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python maintenance_optimizer.py"
+
+[[workflows.workflow]]
+name = "Limpieza Inteligente"
+author = 42046066
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python analyze_space.py"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python smart_cleanup.py"
+
+[[workflows.workflow]]
+name = "Optimizar Editor"
+author = 42046066
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python optimize_editor.py"
+
+[[workflows.workflow]]
+name = "Optimizar Vision AI"
+author = 42046066
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python optimize_vision_ai.py"
+
+[[workflows.workflow]]
+name = "Vision AI Completo"
+author = 42046066
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python optimize_vision_processing.py"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python optimize_vision_ai.py"
+
+[[workflows.workflow]]
+name = "Run Robot AI API Server"
+author = 42046066
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload --log-level info"
+
+[[ports]]
+localPort = 5000
+externalPort = 80

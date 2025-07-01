@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 Test Reconocimiento Inteligente - Robot AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .section h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            resize: vertical;
+            background: white;
+        }
+
+        .datos-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .campo-grupo {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .campo-grupo label {
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 5px;
+        }
+
+        .campo-grupo input {
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .resultado {
+            background: #f0f9ff;
+            border: 2px solid #0ea5e9;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .resultado h4 {
+            color: #0c4a6e;
+            margin-bottom: 15px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.9em;
+        }
+
+        .codigo {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .ejemplo-btn {
+            background: #10b981;
+            margin: 5px;
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .datos-section {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Test Reconocimiento Inteligente</h1>
+            <p>Prueba el sistema de reconocimiento automático de campos en plantillas</p>
+            <div style="background: rgba(255, 152, 0, 0.2); border: 1px solid #ff9800; border-radius: 10px; padding: 15px; margin-top: 15px;">
+                <strong>⚠️ MODO SIN IA:</strong> El reconocimiento con IA está temporalmente desactivado. 
+                Solo se usarán patrones locales para el llenado de plantillas.
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="section">
+                <h3>📄 Texto de la Plantilla</h3>
+                <textarea id="textoPlantilla" placeholder="Pega aquí el texto de tu plantilla...">
+Señores: Servicio Nacional de Aprendizaje SENA
+Subdirección Centro de Comercio
+y Fortalecimiento Empresarial de Caldas
+
+Servicio Nacional de Aprendizaje SENA
+Subdirección Centro de Comercio
+y Fortalecimiento Empresarial de Caldas
+
+NIT:
+
+Ciudad
+                </textarea>
+
+                <div style="margin-top: 15px;">
+                    <button class="btn ejemplo-btn" onclick="cargarEjemplo1()">📋 Ejemplo 1: SENA</button>
+                    <button class="btn ejemplo-btn" onclick="cargarEjemplo2()">📋 Ejemplo 2: Alcaldía</button>
+                    <button class="btn ejemplo-btn" onclick="cargarEjemplo3()">📋 Ejemplo 3: Ministerio</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>📊 Datos de Prueba</h3>
+                <div class="datos-section">
+                    <div class="campo-grupo">
+                        <label>🏢 Entidad:</label>
+                        <input type="text" id="entidad" value="Servicio Nacional de Aprendizaje SENA">
+                    </div>
+                    <div class="campo-grupo">
+                        <label>🆔 NIT:</label>
+                        <input type="text" id="nit" value="899999034-1">
+                    </div>
+                    <div class="campo-grupo">
+                        <label>🏙️ Ciudad:</label>
+                        <input type="text" id="ciudad" value="Manizales">
+                    </div>
+                    <div class="campo-grupo">
+                        <label>📍 Dirección:</label>
+                        <input type="text" id="direccion" value="Calle 23 # 23-50">
+                    </div>
+                    <div class="campo-grupo">
+                        <label>📋 Objeto:</label>
+                        <input type="text" id="objeto" value="Suministro de materiales de oficina">
+                    </div>
+                    <div class="campo-grupo">
+                        <label>💰 Valor:</label>
+                        <input type="text" id="valor" value="$5,000,000 COP">
+                    </div>
+                </div>
+
+                <button class="btn" onclick="probarReconocimiento()" id="btnProbar">
+                    🤖 Probar Reconocimiento Inteligente
+                </button>
+            </div>
+        </div>
+
+        <div id="resultado" style="display: none;">
+            <!-- Aquí se mostrarán los resultados -->
+        </div>
+    </div>
+
+    <script>
+        function cargarEjemplo1() {
+            document.getElementById('textoPlantilla').value = `Señores: Servicio Nacional de Aprendizaje SENA
+Subdirección Centro de Comercio
+y Fortalecimiento Empresarial de Caldas
+
+Servicio Nacional de Aprendizaje SENA
+Subdirección Centro de Comercio
+y Fortalecimiento Empresarial de Caldas
+
+NIT:
+
+Ciudad`;
+
+            document.getElementById('entidad').value = 'Servicio Nacional de Aprendizaje SENA';
+            document.getElementById('nit').value = '899999034-1';
+            document.getElementById('ciudad').value = 'Manizales';
+        }
+
+        function cargarEjemplo2() {
+            document.getElementById('textoPlantilla').value = `Señores:
+Alcaldía Municipal de Bogotá D.C.
+Secretaría de Hacienda
+
+NIT: 
+Dirección: 
+Ciudad: 
+Objeto del contrato: 
+Valor estimado: `;
+
+            document.getElementById('entidad').value = 'Alcaldía Municipal de Bogotá D.C.';
+            document.getElementById('nit').value = '899999999-9';
+            document.getElementById('ciudad').value = 'Bogotá D.C.';
+            document.getElementById('direccion').value = 'Carrera 8 # 10-65';
+            document.getElementById('objeto').value = 'Prestación de servicios de consultoría';
+            document.getElementById('valor').value = '$15,000,000 COP';
+        }
+
+        function cargarEjemplo3() {
+            document.getElementById('textoPlantilla').value = `Para: Ministerio de Educación Nacional
+República de Colombia
+
+Entidad: 
+N.I.T.: 
+Dirección de la entidad: 
+Municipio: 
+Ref: Presentación de propuesta
+
+Asunto: `;
+
+            document.getElementById('entidad').value = 'Ministerio de Educación Nacional';
+            document.getElementById('nit').value = '899999999-0';
+            document.getElementById('ciudad').value = 'Bogotá D.C.';
+            document.getElementById('direccion').value = 'Calle 43 # 57-14';
+            document.getElementById('objeto').value = 'Suministro de equipos tecnológicos';
+        }
+
+        async function probarReconocimiento() {
+            const btnProbar = document.getElementById('btnProbar');
+            const resultado = document.getElementById('resultado');
+
+            btnProbar.disabled = true;
+            btnProbar.innerHTML = '⏳ Procesando...';
+
+            try {
+                const textoPlantilla = document.getElementById('textoPlantilla').value;
+                const datos = {
+                    entidad: document.getElementById('entidad').value,
+                    nit: document.getElementById('nit').value,
+                    ciudad: document.getElementById('ciudad').value,
+                    direccion: document.getElementById('direccion').value,
+                    objeto: document.getElementById('objeto').value,
+                    valor: document.getElementById('valor').value
+                };
+
+                const response = await fetch('/test-reconocimiento-plantilla', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        texto_plantilla: textoPlantilla,
+                        datos: datos
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    mostrarResultado(data);
+                } else {
+                    throw new Error(data.detail || 'Error en el reconocimiento');
+                }
+
+            } catch (error) {
+                alert('Error: ' + error.message);
+                console.error('Error:', error);
+            } finally {
+                btnProbar.disabled = false;
+                btnProbar.innerHTML = '🤖 Probar Reconocimiento Inteligente';
+            }
+        }
+
+        function mostrarResultado(data) {
+            const resultado = document.getElementById('resultado');
+            const analisis = data.analisis;
+
+            resultado.innerHTML = `
+                <div class="resultado">
+                    <h4>📊 Resultados del Reconocimiento Inteligente</h4>
+
+                    <div class="stats">
+                        <div class="stat-card">
+                            <div class="stat-number">${analisis.total_campos_encontrados}</div>
+                            <div class="stat-label">Campos Procesados</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${analisis.total_datos_enviados}</div>
+                            <div class="stat-label">Datos Enviados</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${Math.round((analisis.total_campos_encontrados/analisis.total_datos_enviados)*100)}%</div>
+                            <div class="stat-label">Efectividad</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${data.diferencias.cambios_aplicados}</div>
+                            <div class="stat-label">Cambios Aplicados</div>
+                        </div>
+                    </div>
+
+                    <h4>📄 Texto Procesado (Resultado)</h4>
+                    <div class="codigo">${data.texto_procesado.replace(/\n/g, '<br>')}</div>
+
+                    <h4>🔍 Campos Detectados y Procesados</h4>
+                    <div class="codigo">${JSON.stringify(analisis.campos_procesados, null, 2)}</div>
+
+                    <h4>🏗️ Estructura Detectada</h4>
+                    <div class="codigo">${JSON.stringify(analisis.estructura_detectada, null, 2)}</div>
+                </div>
+            `;
+
+            resultado.style.display = 'block';
+            resultado.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1865 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentos Rocastor - Robot AI</title>
+    <style>
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 35%, #0f172a 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 0;
+            background: rgba(255,255,255,0.03);
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(226, 232, 240, 0.08);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            margin-top: 20px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin: 0 0 10px 0;
+            background: linear-gradient(45deg, #7dd3fc, #86efac, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.8;
+            margin: 0;
+            color: #cbd5e1;
+        }
+
+        .tabs-container {
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(226, 232, 240, 0.1);
+            margin-bottom: 30px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .tab-button {
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            color: #f8fafc;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .tab-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .upload-area {
+            border: 2px dashed rgba(125, 211, 252, 0.5);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            background: rgba(255,255,255,0.02);
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover {
+            border-color: #7dd3fc;
+            background: rgba(125, 211, 252, 0.05);
+        }
+
+        .upload-area.dragover {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            color: #f8fafc;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .files-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .file-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(226, 232, 240, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .file-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            background: rgba(255,255,255,0.08);
+        }
+
+        .file-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .file-name {
+            font-weight: bold;
+            color: #7dd3fc;
+            font-size: 0.95em;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-small {
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn-download {
+            background: linear-gradient(45deg, #22c55e, #16a34a);
+            color: white;
+        }
+
+        .btn-delete {
+            background: linear-gradient(45deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .btn-small:hover {
+            transform: translateY(-1px);
+        }
+
+        .file-meta {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+
+        .process-selector {
+            margin-bottom: 30px;
+        }
+
+        .process-selector select {
+            padding: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.03);
+            color: #e2e8f0;
+            font-size: 16px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .process-selector select:focus {
+            outline: none;
+            border-color: #7dd3fc;
+            background: rgba(255,255,255,0.06);
+            box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.15);
+        }
+
+        .template-process-section {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+        }
+
+        .template-list {
+            flex: 1;
+        }
+
+        .process-info {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(226, 232, 240, 0.1);
+        }
+
+        .process-data {
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        .process-data strong {
+            color: #fbbf24;
+        }
+
+        .generate-section {
+            margin-top: 30px;
+            text-align: center;
+            padding: 30px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 15px;
+            border: 1px solid rgba(226, 232, 240, 0.1);
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border: none;
+            padding: 20px 40px;
+            border-radius: 15px;
+            color: #f8fafc;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.3);
+        }
+
+        .btn-generate:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 4px solid #FFD700;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .navbar {
+            background: rgba(0,0,0,0.4);
+            padding: 15px 0;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .navbar-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 0 20px;
+        }
+
+        .nav-link {
+            color: #e2e8f0;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .nav-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: #7dd3fc;
+        }
+
+        .template-sub-tab {
+            transition: all 0.3s ease;
+        }
+
+        .template-sub-tab.active {
+            display: block;
+        }
+
+        .process-warning {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid rgba(255, 193, 7, 0.4);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            color: #FFC107;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .template-process-section {
+                flex-direction: column;
+            }
+
+            .tabs {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .files-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="/" class="nav-link">🏠 Inicio</a>
+            <a href="/dashboard" class="nav-link">📈 Dashboard</a>
+            <a href="/panel-filtros" class="nav-link">📊 Panel de Filtros</a>
+            <a href="/documentos-rocastor" class="nav-link" style="background: rgba(255,255,255,0.1);">📁 Documentos Rocastor</a>
+            <a href="/panel-s3" class="nav-link">☁️ Panel S3</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <h1>📁 Documentos Rocastor</h1>
+            <p>Gestión de Documentos PDF y Plantillas Word</p>
+        </div>
+
+        <div class="tabs-container">
+            <div class="tabs">
+                <button class="tab-button active" onclick="switchTab('pdfs')">📄 PDFs para Ofertas</button>
+                <button class="tab-button" onclick="switchTab('templates')">📝 Plantillas Word</button>
+                <button class="tab-button" onclick="switchTab('generate')">🚀 Generar Documentos</button>
+            </div>
+
+            <!-- Tab PDFs -->
+            <div id="pdfs-tab" class="tab-content active">
+                <div class="upload-area" id="pdfUploadArea">
+                    <h3>📄 Subir Archivos PDF para Ofertas</h3>
+                    <p>Arrastra y suelta archivos PDF aquí o haz clic para seleccionar</p>
+                    <input type="file" id="pdfFileInput" multiple accept=".pdf" style="display: none;">
+                    <button class="upload-btn" onclick="document.getElementById('pdfFileInput').click()">
+                        📁 Seleccionar PDFs
+                    </button>
+                </div>
+
+                <div id="pdfFiles" class="files-grid">
+                    <!-- PDF files will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Tab Templates -->
+            <div id="templates-tab" class="tab-content">
+                <div class="tabs-container" style="background: rgba(255,255,255,0.02); margin-bottom: 20px;">
+                    <div class="tabs" style="margin-bottom: 20px;">
+                        <button class="tab-button active" onclick="switchTemplateTab('general')" id="generalTemplateBtn">📝 Plantillas Generales</button>
+                        <button class="tab-button" onclick="switchTemplateTab('specific')" id="specificTemplateBtn">🎯 Plantillas Específicas</button>
+                    </div>
+
+                    <!-- Plantillas Generales -->
+                    <div id="general-templates" class="template-sub-tab active">
+                        <div class="upload-area" id="templateUploadArea">
+                            <h3>📝 Subir Plantillas Word Generales</h3>
+                            <p>Estas plantillas se usarán para cualquier proceso</p>
+                            <input type="file" id="templateFileInput" multiple accept=".docx" style="display: none;">
+                            <button class="upload-btn" onclick="document.getElementById('templateFileInput').click()">
+                                📁 Seleccionar Plantillas Generales
+                            </button>
+                        </div>
+
+                        <div id="templateFiles" class="files-grid">
+                            <!-- Template files will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Plantillas Específicas -->
+                    <div id="specific-templates" class="template-sub-tab" style="display: none;">
+                        <div class="process-selector" style="margin-bottom: 20px;">
+                            <label for="templateProcessSelect"><strong>Seleccionar Proceso para Plantillas Específicas:</strong></label>
+                            <select id="templateProcessSelect" onchange="loadSpecificTemplates()">
+                                <option value="">-- Seleccionar Proceso --</option>
+                            </select>
+                        </div>
+
+                        <div class="upload-area" id="specificTemplateUploadArea">
+                            <h3>🎯 Subir Plantillas Específicas del Proceso</h3>
+                            <p>Estas plantillas solo se usarán para el proceso seleccionado</p>
+                            <input type="file" id="specificTemplateFileInput" multiple accept=".docx" style="display: none;">
+                            <button class="upload-btn" onclick="document.getElementById('specificTemplateFileInput').click()" disabled id="specificUploadBtn">
+                                📁 Seleccionar Plantillas Específicas
+                            </button>
+                        </div>
+
+                        <div id="specificTemplateFiles" class="files-grid">
+                            <!-- Specific template files will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Generate -->
+            <div id="generate-tab" class="tab-content">
+                <h3>🚀 Generar Documentos Completos</h3>
+
+                <div class="process-selector">
+                    <label for="processSelect"><strong>Seleccionar Proceso para Llenar Plantillas:</strong></label>
+                    <select id="processSelect" onchange="loadProcessData()">
+                        <option value="">-- Seleccionar Proceso --</option>
+                    </select>
+                </div>
+
+                <div class="template-process-section">
+                    <div class="template-list">
+                        <h4>📝 Plantillas Disponibles</h4>
+                        <div id="availableTemplates">
+                            <p>Sube plantillas Word en la pestaña "Plantillas Word" para verlas aquí.</p>
+                        </div>
+                    </div>
+
+                    <div class="process-info" id="processInfo">
+                        <h4>📊 Datos del Proceso</h4>
+                        <p>Selecciona un proceso para ver sus datos aquí.</p>
+                    </div>
+                </div>
+
+                <div class="generate-section">
+                    <h4>🎯 Generar Carpeta Completa</h4>
+                    <p>Incluirá: PDFs guardados + Plantillas diligenciadas con datos del proceso seleccionado</p>
+                    <button class="btn-generate" id="generateBtn" onclick="generateCompleteFolder()" disabled>
+                        🚀 Generar y Descargar Carpeta Completa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let pdfFiles = JSON.parse(localStorage.getItem('rocastor_pdfs') || '[]');
+        let templateFiles = JSON.parse(localStorage.getItem('rocastor_templates') || '[]');
+        let specificTemplates = JSON.parse(localStorage.getItem('rocastor_specific_templates') || '{}');
+        let allProcesses = [];
+        let selectedProcess = null;
+        let selectedTemplateProcess = null;
+
+        // Variables globales
+        let currentProcessAnswers = {};
+        let savedPdfs = [];
+        let savedTemplates = [];
+        let processName = '';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPDFsFromServer();
+            loadTemplatesFromServer();
+            setupDragAndDrop();
+            setupFileInputs();
+            loadTemplateProcesses();
+            
+            // Verificar si hay un proceso preseleccionado desde panel de filtros
+            const procesoPreseleccionado = localStorage.getItem('proceso_preseleccionado_rocastor');
+            if (procesoPreseleccionado) {
+                console.log(`🎯 Proceso preseleccionado detectado: ${procesoPreseleccionado}`);
+                
+                // Limpiar el localStorage
+                localStorage.removeItem('proceso_preseleccionado_rocastor');
+                
+                // Cargar procesos PRIMERO y LUEGO hacer la preselección
+                loadProcesses().then(() => {
+                    console.log(`🔄 Procesos cargados, iniciando preselección automática...`);
+                    
+                    // Activar automáticamente la pestaña de generación
+                    setTimeout(() => {
+                        switchTab('generate');
+                        
+                        // Preseleccionar el proceso en el dropdown
+                        setTimeout(() => {
+                            const processSelect = document.getElementById('processSelect');
+                            if (processSelect) {
+                                console.log(`📋 Buscando proceso "${procesoPreseleccionado}" en dropdown...`);
+                                
+                                // Buscar si el proceso existe en las opciones
+                                let opcionEncontrada = false;
+                                for (let i = 0; i < processSelect.options.length; i++) {
+                                    if (processSelect.options[i].value === procesoPreseleccionado) {
+                                        processSelect.selectedIndex = i;
+                                        opcionEncontrada = true;
+                                        break;
+                                    }
+                                }
+                                
+                                if (opcionEncontrada) {
+                                    console.log(`✅ Proceso encontrado y seleccionado en dropdown`);
+                                    
+                                    // Disparar el evento change para cargar los datos
+                                    const event = new Event('change');
+                                    processSelect.dispatchEvent(event);
+                                    
+                                    // Mostrar notificación de éxito
+                                    showSuccessNotification(`✅ Proceso "${procesoPreseleccionado}" cargado automáticamente desde Panel de Filtros`);
+                                } else {
+                                    console.warn(`⚠️ Proceso "${procesoPreseleccionado}" no encontrado en dropdown`);
+                                    showErrorNotification(`⚠️ El proceso "${procesoPreseleccionado}" no se encontró en la lista de procesos disponibles`);
+                                }
+                            } else {
+                                console.error(`❌ Dropdown de procesos no encontrado`);
+                            }
+                        }, 1000); // Aumentar tiempo de espera
+                    }, 300);
+                }).catch(error => {
+                    console.error(`❌ Error cargando procesos:`, error);
+                    showErrorNotification(`❌ Error cargando procesos: ${error.message}`);
+                });
+            } else {
+                // Carga normal sin preselección
+                loadProcesses();
+            }
+        });
+
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function switchTemplateTab(subTabName) {
+            // Hide all template sub-tabs
+            document.querySelectorAll('.template-sub-tab').forEach(tab => {
+                tab.style.display = 'none';
+                tab.classList.remove('active');
+            });
+
+            // Remove active class from template tab buttons
+            document.getElementById('generalTemplateBtn').classList.remove('active');
+            document.getElementById('specificTemplateBtn').classList.remove('active');
+
+            // Show selected sub-tab
+            document.getElementById(subTabName + '-templates').style.display = 'block';
+            document.getElementById(subTabName + '-templates').classList.add('active');
+
+            if (subTabName === 'general') {
+                document.getElementById('generalTemplateBtn').classList.add('active');
+            } else {
+                document.getElementById('specificTemplateBtn').classList.add('active');
+            }
+        }
+
+        function setupDragAndDrop() {
+            // PDF Upload Area
+            const pdfArea = document.getElementById('pdfUploadArea');
+            pdfArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                pdfArea.classList.add('dragover');
+            });
+            pdfArea.addEventListener('dragleave', () => {
+                pdfArea.classList.remove('dragover');
+            });
+            pdfArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                pdfArea.classList.remove('dragover');
+                handlePDFFiles(e.dataTransfer.files);
+            });
+
+            // Template Upload Area
+            const templateArea = document.getElementById('templateUploadArea');
+            templateArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                templateArea.classList.add('dragover');
+            });
+            templateArea.addEventListener('dragleave', () => {
+                templateArea.classList.remove('dragover');
+            });
+            templateArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                templateArea.classList.remove('dragover');
+                handleTemplateFiles(e.dataTransfer.files);
+            });
+        }
+
+        function setupFileInputs() {
+            document.getElementById('pdfFileInput').addEventListener('change', (e) => {
+                handlePDFFiles(e.target.files);
+            });
+
+            document.getElementById('templateFileInput').addEventListener('change', (e) => {
+                handleTemplateFiles(e.target.files);
+            });
+
+            document.getElementById('specificTemplateFileInput').addEventListener('change', (e) => {
+                handleSpecificTemplateFiles(e.target.files);
+            });
+        }
+
+        async function loadPDFsFromServer() {
+            try {
+                const response = await fetch('/cargar-pdfs-rocastor');
+                const data = await response.json();
+                pdfFiles = data.pdfs || [];
+                loadPDFs();
+                console.log(`✅ Cargados ${pdfFiles.length} PDFs desde el servidor`);
+            } catch (error) {
+                console.error('Error cargando PDFs:', error);
+                pdfFiles = [];
+                loadPDFs();
+            }
+        }
+
+        async function loadTemplatesFromServer() {
+            try {
+                const response = await fetch('/cargar-plantillas-rocastor');
+                const data = await response.json();
+                templateFiles = data.templates || [];
+                loadTemplates();
+                loadAvailableTemplates();
+                console.log(`✅ Cargadas ${templateFiles.length} plantillas desde el servidor`);
+            } catch (error) {
+                console.error('Error cargando plantillas:', error);
+                templateFiles = [];
+                loadTemplates();
+            }
+        }
+
+        async function loadSpecificTemplatesFromServer(processName) {
+            try {
+                console.log(`🎯 Cargando plantillas específicas desde servidor para: ${processName}`);
+                const response = await fetch(`/cargar-plantillas-especificas-rocastor/${encodeURIComponent(processName)}`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                const templates = data.templates || [];
+
+                // Actualizar cache local
+                specificTemplates[processName] = templates;
+
+                // Si estamos en la pestaña de plantillas específicas y este es el proceso seleccionado
+                const templateProcessSelect = document.getElementById('templateProcessSelect');
+                if (templateProcessSelect && templateProcessSelect.value === processName) {
+                    loadSpecificTemplates();
+                }
+
+                console.log(`✅ Cargadas ${templates.length} plantillas específicas para ${processName} desde servidor`);
+                return templates;
+
+            } catch (error) {
+                console.error(`❌ Error cargando plantillas específicas para ${processName}:`, error);
+                specificTemplates[processName] = [];
+
+                // Si estamos en la pestaña correcta, mostrar el estado vacío
+                const templateProcessSelect = document.getElementById('templateProcessSelect');
+                if (templateProcessSelect && templateProcessSelect.value === processName) {
+                    loadSpecificTemplates();
+                }
+
+                return [];
+            }
+        }
+
+        function handlePDFFiles(files) {
+            Array.from(files).forEach(file => {
+                if (file.type === 'application/pdf') {
+                    const fileReader = new FileReader();
+                    fileReader.onload = async function(e) {
+                        const fileData = {
+                            id: Date.now() + Math.random(),
+                            name: file.name,
+                            size: file.size,
+                            uploadDate: new Date().toISOString(),
+                            fechaVencimiento: new Date(Date.now() + (30 * 24 * 60 * 60 * 1000)).toISOString(), // 30 días desde hoy
+                            data: e.target.result
+                        };
+
+                        try {
+                            // Guardar en servidor
+                            const response = await fetch('/guardar-pdf-rocastor', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify(fileData)
+                            });
+
+                            if (response.ok) {
+                                pdfFiles.push(fileData);
+                                loadPDFs();
+                                console.log(`✅ PDF ${file.name} guardado en servidor`);
+                            } else {
+                                alert('Error guardando PDF en servidor');
+                            }
+                        } catch (error) {
+                            console.error('Error guardando PDF:', error);
+                            alert('Error guardando PDF: ' + error.message);
+                        }
+                    };
+                    fileReader.readAsDataURL(file);
+                }
+            });
+        }
+
+        function handleTemplateFiles(files) {
+            Array.from(files).forEach(file => {
+                if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                    const fileReader = new FileReader();
+                    fileReader.onload = async function(e) {
+                        const fileData = {
+                            id: Date.now() + Math.random(),
+                            name: file.name,
+                            size: file.size,
+                            uploadDate: new Date().toISOString(),
+                            fechaVencimiento: new Date(Date.now() + (30 * 24 * 60 * 60 * 1000)).toISOString(), // 30 días desde hoy
+                            data: e.target.result
+                        };
+
+                        try {
+                            // Guardar en servidor
+                            const response = await fetch('/guardar-plantilla-rocastor', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify(fileData)
+                            });
+
+                            if (response.ok) {
+                                templateFiles.push(fileData);
+                                loadTemplates();
+                                loadAvailableTemplates();
+                                console.log(`✅ Plantilla ${file.name} guardada en servidor`);
+                            } else {
+                                alert('Error guardando plantilla en servidor');
+                            }
+                        } catch (error) {
+                            console.error('Error guardando plantilla:', error);
+                            alert('Error guardando plantilla: ' + error.message);
+                        }
+                    };
+                    fileReader.readAsDataURL(file);
+                }
+            });
+        }
+
+        // Funciones de localStorage eliminadas - ahora usamos almacenamiento en servidor
+
+        function handleSpecificTemplateFiles(files) {
+            if (!selectedTemplateProcess) {
+                alert('Primero selecciona un proceso para las plantillas específicas');
+                return;
+            }
+
+            Array.from(files).forEach(file => {
+                if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                    const fileReader = new FileReader();
+                    fileReader.onload = async function(e) {
+                        const fileData = {
+                            id: Date.now() + Math.random(),
+                            name: file.name,
+                            size: file.size,
+                            uploadDate: new Date().toISOString(),
+                            fechaVencimiento: new Date(Date.now() + (30 * 24 * 60 * 60 * 1000)).toISOString(), // 30 días desde hoy
+                            data: e.target.result,
+                            processName: selectedTemplateProcess
+                        };
+
+                        try {
+                            // Guardar en servidor
+                            const response = await fetch('/guardar-plantilla-especifica-rocastor', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify(fileData)
+                            });
+
+                            if (response.ok) {
+                                if (!specificTemplates[selectedTemplateProcess]) {
+                                    specificTemplates[selectedTemplateProcess] = [];
+                                }
+                                specificTemplates[selectedTemplateProcess].push(fileData);
+                                loadSpecificTemplates();
+                                console.log(`✅ Plantilla específica ${file.name} guardada para proceso ${selectedTemplateProcess}`);
+                            } else {
+                                alert('Error guardando plantilla específica en servidor');
+                            }
+                        } catch (error) {
+                            console.error('Error guardando plantilla específica:', error);
+                            alert('Error guardando plantilla específica: ' + error.message);
+                        }
+                    };
+                    fileReader.readAsDataURL(file);
+                }
+            });
+        }
+
+        async function loadTemplateProcesses() {
+            try {
+                const response = await fetch('/lista-procesos');
+                const data = await response.json();
+
+                const select = document.getElementById('templateProcessSelect');
+                select.innerHTML = '<option value="">-- Seleccionar Proceso --</option>';
+
+                data.procesos.forEach(proceso => {
+                    const option = document.createElement('option');
+                    option.value = proceso.nombre_proceso;
+                    option.textContent = `${proceso.nombre_proceso} (${new Date(proceso.timestamp).toLocaleDateString('es-ES')})`;
+                    select.appendChild(option);
+                });
+
+            } catch (error) {
+                console.error('Error loading template processes:', error);
+            }
+        }
+
+        async function loadSpecificTemplates() {
+            const processName = document.getElementById('templateProcessSelect').value;
+            const uploadBtn = document.getElementById('specificUploadBtn');
+
+            if (!processName) {
+                uploadBtn.disabled = true;
+                selectedTemplateProcess = null;
+                document.getElementById('specificTemplateFiles').innerHTML = '<p style="text-align: center; opacity: 0.7;">Selecciona un proceso para ver sus plantillas específicas</p>';
+                return;
+            }
+
+            selectedTemplateProcess = processName;
+            uploadBtn.disabled = false;
+
+            // Cargar plantillas específicas desde el servidor
+            await loadSpecificTemplatesFromServer(processName);
+
+            const container = document.getElementById('specificTemplateFiles');
+            const processTemplates = specificTemplates[processName] || [];
+
+            if (processTemplates.length === 0) {
+                container.innerHTML = `
+                    <div class="process-warning">
+                        <p><strong>⚠️ Este proceso no tiene plantillas específicas</strong></p>
+                        <p>Puedes subir plantillas específicas para este proceso o usar las plantillas generales.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = '';
+            processTemplates.forEach(file => {
+                const fileCard = document.createElement('div');
+                fileCard.className = 'file-card';
+                fileCard.innerHTML = `
+                    <div class="file-header">
+                        <div class="file-name">🎯 ${file.name}</div>
+                        <div class="file-actions">
+                            <button class="btn-small btn-download" onclick="downloadSpecificFile('${file.id}', '${processName}')">⬇️ Descargar</button>
+                            <button class="btn-small btn-delete" onclick="deleteSpecificFile('${file.id}', '${processName}'), '${processName}')">🗑️ Eliminar</button>
+                        </div>
+                    </div>
+                    <div class="file-meta">
+                        Tamaño: ${(file.size / 1024 / 1024).toFixed(2)} MB<br>
+                        Subido: ${new Date(file.uploadDate).toLocaleDateString('es-ES')}<br>
+                        <strong>Proceso:</strong> ${processName}
+                    </div>
+                `;
+                container.appendChild(fileCard);
+            });
+        }
+
+        function downloadSpecificFile(fileId, processName) {
+            const processTemplates = specificTemplates[processName] || [];
+            const file = processTemplates.find(f => f.id == fileId);
+
+            if (file) {
+                const link = document.createElement('a');
+                link.href = file.data;
+                link.download = file.name;
+                document.bodyappendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+
+        async function deleteSpecificFile(fileId, processName) {
+            if (confirm('¿Estás seguro de que quieres eliminar esta plantilla específica?')) {
+                try {
+                    const response = await fetch(`/eliminar-plantilla-especifica-rocastor/${encodeURIComponent(processName)}/${fileId}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (response.ok) {
+                        if (specificTemplates[processName]) {
+                            specificTemplates[processName] = specificTemplates[processName].filter(f => f.id != fileId);
+
+                            if (specificTemplates[processName].length === 0) {
+                                delete specificTemplates[processName];
+                            }
+
+                            loadSpecificTemplates();
+                        }
+                        console.log(`✅ Plantilla específica eliminada del servidor`);
+                    } else {
+                        alert('Error eliminando plantilla específica del servidor');
+                    }
+                } catch (error) {
+                    console.error('Error eliminando plantilla específica:', error);
+                    alert('Error eliminando plantilla específica: ' + error.message);
+                }
+            }
+        }
+
+        function loadPDFs() {
+            const container = document.getElementById('pdfFiles');
+            container.innerHTML = '';
+
+            if (pdfFiles.length === 0) {
+                container.innerHTML = '<p style="text-align: center; opacity: 0.7;">No hay PDFs guardados</p>';
+                return;
+            }
+
+            pdfFiles.forEach(file => {
+                const fileCard = document.createElement('div');
+                fileCard.className = 'file-card';
+                fileCard.innerHTML = `
+                    <div class="file-header">
+                        <div class="file-name">📄 ${file.name}</div>
+                        <div class="file-actions">
+                            <button class="btn-small btn-download" onclick="downloadFile('${file.id}', 'pdf')">⬇️ Descargar</button>
+                            <button class="btn-small btn-delete" onclick="deleteFile('${file.id}', 'pdf')">🗑️ Eliminar</button>
+                        </div>
+                    </div>
+                    <div class="file-meta">
+                        Tamaño: ${(file.size / 1024 / 1024).toFixed(2)} MB<br>
+                        Subido: ${new Date(file.uploadDate).toLocaleDateString('es-ES')}
+                    </div>
+                `;
+                container.appendChild(fileCard);
+            });
+        }
+
+        function loadTemplates() {
+            const container = document.getElementById('templateFiles');
+            container.innerHTML = '';
+
+            if (templateFiles.length === 0) {
+                container.innerHTML = '<p style="text-align: center; opacity: 0.7;">No hay plantillas guardadas</p>';
+                return;
+            }
+
+            templateFiles.forEach(file => {
+                const fileCard = document.createElement('div');
+                fileCard.className = 'file-card';
+                fileCard.innerHTML = `
+                    <div class="file-header">
+                        <div class="file-name">📝 ${file.name}</div>
+                        <div class="file-actions">
+                            <button class="btn-small btn-download" onclick="downloadFile('${file.id}', 'template')">⬇️ Descargar</button>
+                            <button class="btn-small btn-delete" onclick="deleteFile('${file.id}', 'template')">🗑️ Eliminar</button>
+                        </div>
+                    </div>
+                    <div class="file-meta">
+                        Tamaño: ${(file.size / 1024 / 1024).toFixed(2)} MB<br>
+                        Subido: ${new Date(file.uploadDate).toLocaleDateString('es-ES')}
+                    </div>
+                `;
+                container.appendChild(fileCard);
+            });
+        }
+
+        function downloadFile(fileId, type) {
+            const files = type === 'pdf' ? pdfFiles : templateFiles;
+            const file = files.find(f => f.id == fileId);
+
+            if (file) {
+                const link = document.createElement('a');
+                link.href = file.data;
+                link.download = file.name;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+
+        async function deleteFile(fileId, type) {
+            if (confirm('¿Estás seguro de que quieres eliminar este archivo?')) {
+                try {
+                    const endpoint = type === 'pdf' ? `/eliminar-pdf-rocastor/${fileId}` : `/eliminar-plantilla-rocastor/${fileId}`;
+                    const response = await fetch(endpoint, { method: 'DELETE' });
+
+                    if (response.ok) {
+                        if (type === 'pdf') {
+                            pdfFiles = pdfFiles.filter(f => f.id != fileId);
+                            loadPDFs();
+                        } else {
+                            templateFiles = templateFiles.filter(f => f.id != fileId);
+                            loadTemplates();
+                            loadAvailableTemplates();
+                        }
+                        console.log(`✅ ${type === 'pdf' ? 'PDF' : 'Plantilla'} eliminado del servidor`);
+                    } else {
+                        alert('Error eliminando archivo del servidor');
+                    }
+                } catch (error) {
+                    console.error('Error eliminando archivo:', error);
+                    alert('Error eliminando archivo: ' + error.message);
+                }
+            }
+        }
+
+        async function loadProcesses() {
+            try {
+                console.log('🔄 Cargando lista de procesos...');
+                const response = await fetch('/lista-procesos');
+                
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.error || 'Error desconocido cargando procesos');
+                }
+                
+                allProcesses = data.procesos || [];
+                console.log(`✅ ${allProcesses.length} procesos cargados`);
+
+                const select = document.getElementById('processSelect');
+                if (!select) {
+                    throw new Error('Dropdown de procesos no encontrado en el DOM');
+                }
+                
+                select.innerHTML = '<option value="">-- Seleccionar Proceso --</option>';
+
+                allProcesses.forEach(proceso => {
+                    const option = document.createElement('option');
+                    option.value = proceso.nombre_proceso;
+                    option.textContent = `${proceso.nombre_proceso} (${new Date(proceso.timestamp).toLocaleDateString('es-ES')})`;
+                    select.appendChild(option);
+                });
+                
+                console.log('✅ Dropdown de procesos actualizado correctamente');
+                return Promise.resolve();
+
+            } catch (error) {
+                console.error('❌ Error loading processes:', error);
+                return Promise.reject(error);
+            }
+        }
+
+        // Cargar datos del proceso seleccionado
+        async function loadProcessData() {
+            const selectedProcessValue = document.getElementById('processSelect').value;
+            if (!selectedProcessValue || selectedProcessValue === '') {
+                document.getElementById('processInfo').innerHTML = `
+                    <h4>📊 Datos del Proceso</h4>
+                    <p>Selecciona un proceso para ver sus datos aquí.</p>
+                `;
+                document.getElementById('generateBtn').disabled = true;
+                loadAvailableTemplates();
+                return;
+            }
+
+            // Inicializar processName primero
+            processName = selectedProcessValue;
+
+            // ✅ CARGA AUTOMÁTICA: Cargar PDFs y plantillas del servidor
+            console.log('🔄 Cargando automáticamente PDFs y plantillas para el proceso seleccionado...');
+
+            try {
+                // Mostrar indicador de carga
+                document.getElementById('processInfo').innerHTML = `
+                    <h4>📊 Datos del Proceso</h4>
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Cargando archivos automáticamente...</p>
+                    </div>
+                `;
+
+                // Cargar PDFs automáticamente
+                console.log('📄 Cargando PDFs automáticamente...');
+                await loadPDFsFromServer();
+
+                // Cargar plantillas generales automáticamente
+                console.log('📝 Cargando plantillas generales automáticamente...');
+                await loadTemplatesFromServer();
+
+                // Cargar plantillas específicas del proceso automáticamente
+                console.log(`🎯 Cargando plantillas específicas para ${selectedProcessValue}...`);
+                await loadSpecificTemplatesFromServer(selectedProcessValue);
+
+                console.log('✅ Archivos cargados automáticamente');
+
+            } catch (error) {
+                console.error('❌ Error en carga automática:', error);
+            }
+
+            try {
+                // Usar el mismo enfoque que panel_filtros: buscar el proceso en allProcesses
+                const proceso = allProcesses.find(p => p.nombre_proceso === processName);
+                if (!proceso) {
+                    throw new Error('Proceso no encontrado en la lista de procesos');
+                }
+
+                console.log('📊 Proceso encontrado:', proceso);
+
+                // Usar directamente los datos del proceso como en panel_filtros
+                const data = proceso;
+
+                // Crear objeto selectedProcess global con la misma estructura que panel_filtros
+                selectedProcess = { 
+                    proceso: proceso,
+                    data: data,
+                    processName: processName
+                };
+
+                // Usar EXACTAMENTE el mismo mapeo que panel_filtros
+                const PREGUNTAS_OPENAI_ORDEN = [
+                    "¿Cuál es el nombre oficial de la entidad contratante o institución que está comprando o contratando? No incluyas ciudades, direcciones ni ubicaciones geográficas, solo el nombre de la organización.",
+                    "¿Cuál es el número de NIT o identificación tributaria de la entidad contratante? Incluye solo los números, sin espacios ni caracteres especiales.",
+                    "¿Cuál es la dirección física completa de la entidad contratante? Incluye solo la dirección postal, no nombres de entidades.",
+                    "¿En qué ciudad está ubicada la entidad contratante? Responde solo con el nombre de la ciudad.",
+                    "¿Cuál es el objeto específico del contrato, licitación o proceso de compra? Describe qué se va a contratar o comprar.",
+                    "¿Cuál es el valor total del contrato, presupuesto o monto estimado? Incluye solo la cifra numérica con su moneda.",
+                    "¿Qué requisitos de experiencia específica se mencionan para los proponentes o contratistas?",
+                    "¿Qué requisitos se mencionan sobre afiliación a salud, pensión o seguridad social?",
+                    "¿Qué documentos anexos, formatos específicos o certificados se requieren entregar?",
+                    "¿Cuál es el cronograma detallado del proceso? Incluye fechas, horarios y actividades específicas tal como aparecen en el documento."
+                ];
+
+                function mapearRespuestasOpenAI(analisisCompleto) {
+                    const respuestasMapeadas = {};
+
+                    // Verificar si tenemos el formato de análisis completo con preguntas numeradas
+                    if (analisisCompleto && Array.isArray(analisisCompleto)) {
+                        // Mapear por número de pregunta
+                        analisisCompleto.forEach((item, index) => {
+                            if (item && typeof item === 'object') {
+                                const numeroP = item.pregunta_numero || (index + 1);
+                                const respuesta = item.respuesta || 'No encontrado';
+
+                                // Mapear usando el número de pregunta como índice en nuestro array
+                                if (numeroP >= 1 && numeroP <= PREGUNTAS_OPENAI_ORDEN.length) {
+                                    const preguntaKey = PREGUNTAS_OPENAI_ORDEN[numeroP - 1];
+                                    respuestasMapeadas[preguntaKey] = respuesta;
+                                }
+                            }
+                        });
+                    }
+
+                    return respuestasMapeadas;
+                }
+
+                // Extraer respuestas usando el mapeo exacto de panel_filtros
+                let respuestasMapeadas = {};
+                if (data.analisis_completo && Array.isArray(data.analisis_completo)) {
+                    respuestasMapeadas = mapearRespuestasOpenAI(data.analisis_completo);
+                }
+
+                // Crear objeto answers para compatibilidad con el resto del código
+                const answers = {};
+                const entidad = respuestasMapeadas[PREGUNTAS_OPENAI_ORDEN[0]] || 'No encontrado';
+                const nit = respuestasMapeadas[PREGUNTAS_OPENAI_ORDEN[1]] || 'No encontrado';
+                const direccion = respuestasMapeadas[PREGUNTAS_OPENAI_ORDEN[2]] || 'No encontrado';
+                const ciudad = respuestasMapeadas[PREGUNTAS_OPENAI_ORDEN[3]] || 'No encontrado';
+                const objeto = respuestasMapeadas[PREGUNTAS_OPENAI_ORDEN[4]] || 'No encontrado';
+                const valor = respuestasMapeadas[PREGUNTAS_OPENAI_ORDEN[5]] || 'No encontrado';
+
+                answers.entidad = entidad;
+                answers.nit = nit;
+                answers.direccion = direccion;
+                answers.ciudad = ciudad;
+                answers.objeto = objeto;
+                answers.valor = valor;
+
+                // Generar fechas automáticamente - MEJORADO Y EXPANDIDO
+            const fecha_actual = new Date();
+            const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 
+                          'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
+            const dia = fecha_actual.getDate();
+            const mes = meses[fecha_actual.getMonth()];
+            const año = fecha_actual.getFullYear();
+
+            // Múltiples formatos de fecha para mayor compatibilidad
+            const fecha_corta = `${dia.toString().padStart(2, '0')}/${(fecha_actual.getMonth() + 1).toString().padStart(2, '0')}/${año}`;
+            const fecha_larga = `${dia} de ${mes} de ${año}`;
+            const fecha_completa = `${dia} de ${mes} del ${año}`;
+            const fecha_formal = `${dia} de ${mes} de ${año}`;
+            const fecha_iso = fecha_actual.toISOString().split('T')[0];
+
+            console.log(`📅 Fechas generadas para plantillas:`, {
+                fecha_corta,
+                fecha_larga, 
+                fecha_completa,
+                fecha_formal,
+                fecha_iso
+            });
+
+                // Agregar fechas en múltiples formatos para las plantillas
+                answers.fecha = fecha_larga;
+                answers.fecha_corta = fecha_corta;
+                answers.fecha_completa = fecha_completa;
+                answers.fecha_formal = fecha_formal;
+                answers.fecha_iso = fecha_iso;
+                
+                // Datos adicionales para plantillas
+                answers.proceso = processName;
+                answers.nombre_proceso = processName;
+
+                const processInfo = document.getElementById('processInfo');
+                processInfo.innerHTML = `
+                    <h4>📊 Datos del Proceso: ${processName}</h4>
+                    <div class="process-data">
+                        <strong>Entidad:</strong> ${answers.entidad || 'No encontrado'}<br>
+                        <strong>NIT:</strong> ${answers.nit || 'No encontrado'}<br>
+                        <strong>Dirección:</strong> ${answers.direccion || 'No encontrado'}<br>
+                        <strong>Ciudad:</strong> ${answers.ciudad || 'No encontrado'}<br>
+                        <strong>Objeto:</strong> ${answers.objeto || 'No encontrado'}<br>
+                        <strong>Valor:</strong> ${answers.valor || 'No encontrado'}<br>
+                        <strong>Fecha del Proceso:</strong> ${new Date(data.timestamp).toLocaleDateString('es-ES')}<br>
+                        <strong>Archivos Analizados:</strong> ${data.archivos_procesados || 0}<br>
+                        <strong>Storage Type:</strong> ${data.storage_type || 'LOCAL'}
+                    </div>
+                `;
+
+                // Verificar si hay plantillas o PDFs disponibles
+                const currentProcessName = selectedProcess.processName || selectedProcess.proceso.nombre_proceso;
+                const processSpecificTemplates = specificTemplates[currentProcessName] || [];
+                const hasAnyTemplates = processSpecificTemplates.length > 0 || templateFiles.length > 0;
+                const hasPdfs = pdfFiles.length > 0;
+                const hasAnyFiles = hasAnyTemplates || hasPdfs;
+
+                document.getElementById('generateBtn').disabled = !hasAnyFiles;
+                loadAvailableTemplates();
+
+            } catch (error) {
+                console.error('Error loading process data:', error);
+                document.getElementById('processInfo').innerHTML = `
+                    <h4>📊 Datos del Proceso</h4>
+                    <div style="color: #ef4444; padding: 15px; background: rgba(239, 68, 68, 0.1); border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.3);">
+                        <p><strong>❌ Error cargando datos del proceso</strong></p>
+                        <p>Detalles: ${error.message}</p>
+                        <p>Verifica que el proceso seleccionado tenga archivos válidos.</p>
+                    </div>
+                `;
+                selectedProcess = null;
+                document.getElementById('generateBtn').disabled = true;
+            }
+        }
+
+        function loadAvailableTemplates() {
+            const container = document.getElementById('availableTemplates');
+
+            if (!selectedProcess) {
+                container.innerHTML = '<p>Selecciona un proceso para ver las plantillas y PDFs disponibles.</p>';
+                return;
+            }
+
+            const currentProcessName = selectedProcess.processName || selectedProcess.proceso.nombre_proceso;
+            const processSpecificTemplates = specificTemplates[currentProcessName] || [];
+            const hasSpecificTemplates = processSpecificTemplates.length > 0;
+            const hasGeneralTemplates = templateFiles.length > 0;
+            const hasPdfs = pdfFiles.length > 0;
+
+            if (!hasSpecificTemplates && !hasGeneralTemplates && !hasPdfs) {
+                container.innerHTML = '<p>No hay plantillas ni PDFs disponibles. Sube algunos archivos en las pestañas correspondientes.</p>';
+                return;
+            }
+
+            let html = '<h5>📁 Archivos que se incluirán en la carpeta:</h5>';
+
+            // Mostrar PDFs disponibles
+            if (hasPdfs) {
+                html += '<div style="background: rgba(239, 68, 68, 0.1); padding: 10px; margin: 10px 0; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.3);">';
+                html += '<h6 style="color: #ef4444; margin: 0 0 10px 0;">📄 PDFs para Ofertas:</h6>';
+                pdfFiles.forEach(pdf => {
+                    html += `<div style="background: rgba(255,255,255,0.05); padding: 8px; margin: 5px 0; border-radius: 6px;">📄 ${pdf.name}</div>`;
+                });
+                html += '</div>';
+            }
+
+            // Mostrar plantillas específicas del proceso (tienen prioridad)
+            if (hasSpecificTemplates) {
+                html += '<div style="background: rgba(34, 197, 94, 0.1); padding: 10px; margin: 10px 0; border-radius: 8px; border: 1px solid rgba(34, 197, 94, 0.3);">';
+                html += '<h6 style="color: #22c55e; margin: 0 0 10px 0;">🎯 Plantillas Específicas del Proceso:</h6>';
+                processSpecificTemplates.forEach(template => {
+                    html += `<div style="background: rgba(255,255,255,0.05); padding: 8px; margin: 5px 0; border-radius: 6px;">🎯 ${template.name}</div>`;
+                });
+                html += '</div>';
+            }
+
+            // Mostrar plantillas generales solo si no hay específicas o como respaldo
+            if (hasGeneralTemplates) {
+                if (hasSpecificTemplates) {
+                    html += '<div style="background: rgba(148, 163, 184, 0.1); padding: 10px; margin: 10px 0; border-radius: 8px; border: 1px solid rgba(148, 163, 184, 0.3);">';
+                    html += '<h6 style="color: #94a3b8; margin: 0 0 10px 0;">📝 Plantillas Generales (como respaldo):</h6>';
+                } else {
+                    html += '<div style="background: rgba(59, 130, 246, 0.1); padding: 10px; margin: 10px 0; border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.3);">';
+                    html += '<h6 style="color: #3b82f6; margin: 0 0 10px 0;">📝 Plantillas Generales:</h6>';
+                }
+
+                templateFiles.forEach(template => {
+                    html += `<div style="background: rgba(255,255,255,0.05); padding: 8px; margin: 5px 0; border-radius: 6px;">📝 ${template.name}</div>`;
+                });
+                html += '</div>';
+            }
+
+            // Explicación de prioridad
+            if (hasSpecificTemplates && hasGeneralTemplates) {
+                html += '<div style="background: rgba(255, 193, 7, 0.1); padding: 10px; margin: 10px 0; border-radius: 8px; border: 1px solid rgba(255, 193, 7, 0.3); font-size: 0.9em;">';
+                html += '<p style="color: #fbbf24; margin: 0;"><strong>ℹ️ Prioridad:</strong> Se usarán las plantillas específicas del proceso. Las generales solo como respaldo si es necesario.</p>';
+                html += '</div>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        async function generateCompleteFolder() {
+            if (!selectedProcess) {
+                alert('Selecciona un proceso primero');
+                return;
+            }
+
+            // Verificar que hay archivos para generar
+            const currentProcessName = selectedProcess.processName || selectedProcess.proceso.nombre_proceso;
+            const processSpecificTemplates = specificTemplates[currentProcessName] || [];
+            const hasAnyTemplates = processSpecificTemplates.length > 0 || templateFiles.length > 0;
+            const hasPdfs = pdfFiles.length > 0;
+
+            if (!hasAnyTemplates && !hasPdfs) {
+                alert('No hay plantillas ni PDFs disponibles para generar la carpeta. Sube algunos archivos primero.');
+                return;
+            }
+
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('generateBtn').innerHTML = '⏳ Generando...';
+
+            try {
+                console.log('🚀 Iniciando generación de carpeta completa...');
+
+                // Obtener datos del proceso seleccionado
+                const processData = selectedProcess.data;
+                console.log('📊 Datos del proceso:', processData);
+
+                // Usar el mapeo EXACTO de preguntas del sistema Robot AI
+                const PREGUNTAS_OPENAI_ORDEN = [
+                    "¿Cuál es el nombre oficial de la entidad contratante o institución que está comprando o contratando? No incluyas ciudades, direcciones ni ubicaciones geográficas, solo el nombre de la organización.",
+                    "¿Cuál es el número de NIT o identificación tributaria de la entidad contratante? Incluye solo los números, sin espacios ni caracteres especiales.",
+                    "¿Cuál es la dirección física completa de la entidad contratante? Incluye solo la dirección postal, no nombres de entidades.",
+                    "¿En qué ciudad está ubicada la entidad contratante? Responde solo con el nombre de la ciudad.",
+                    "¿Cuál es el objeto específico del contrato, licitación o proceso de compra? Describe qué se va a contratar o comprar.",
+                    "¿Cuál es el valor total del contrato, presupuesto o monto estimado? Incluye solo la cifra numérica con su moneda.",
+                    "¿Qué requisitos de experiencia específica se mencionan para los proponentes o contratistas?",
+                    "¿Qué requisitos se mencionan sobre afiliación a salud, pensión o seguridad social?",
+                    "¿Qué documentos anexos, formatos específicos o certificados se requieren entregar?",
+                    "¿Cuál es el cronograma detallado del proceso? Incluye fechas, horarios y actividades específicas tal como aparecen en el documento."
+                ];
+
+                // Mapear respuestas usando el análisis completo
+                function mapearRespuestasOpenAI(analisisCompleto) {
+                    const respuestasMapeadas = {};
+
+                    if (analisisCompleto && Array.isArray(analisisCompleto)) {
+                        analisisCompleto.forEach((item, index) => {
+                            if (item && typeof item === 'object') {
+                                const numeroP = item.pregunta_numero || (index + 1);
+                                const respuesta = item.respuesta || 'No encontrado';
+
+                                if (numeroP >= 1 && numeroP <= PREGUNTAS_OPENAI_ORDEN.length) {
+                                    const preguntaKey = PREGUNTAS_OPENAI_ORDEN[numeroP - 1];
+                                    respuestasMapeadas[preguntaKey] = respuesta;
+                                }
+                            }
+                        });
+                    }
+
+                    return respuestasMapeadas;
+                }
+
+                // Extraer respuestas del proceso
+                let respuestasMapeadas = {};
+                if (processData.analisis_completo && Array.isArray(processData.analisis_completo)) {
+                    respuestasMapeadas = mapearRespuestasOpenAI(processData.analisis_completo);
+                    console.log('✅ Respuestas mapeadas desde analisis_completo:', respuestasMapeadas);
+                } else if (processData.analisis && Array.isArray(processData.analisis)) {
+                    // Fallback para formato anterior
+                    respuestasMapeadas = mapearRespuestasOpenAI(processData.analisis);
+                    console.log('✅ Respuestas mapeadas desde analisis (fallback):', respuestasMapeadas);
+                }
+
+                // Crear objeto con las respuestas finales para las plantillas
+                const processAnswers = {
+                    entidad: respuestasMapeadas[PREGUNTAS_OPENAI_ORDEN[0]] || 'No encontrado',
+                    nit: respuestasMapeadas[PREGUNTAS_OPENAI_ORDEN[1]] || 'No encontrado',
+                    direccion: respuestasMapeadas[PREGUNTAS_OPENAI_ORDEN[2]] || 'No encontrado',
+                    ciudad: respuestasMapeadas[PREGUNTAS_OPENAI_ORDEN[3]] || 'No encontrado',
+                    objeto: respuestasMapeadas[PREGUNTAS_OPENAI_ORDEN[4]] || 'No encontrado',
+                    valor: respuestasMapeadas[PREGUNTAS_OPENAI_ORDEN[5]] || 'No encontrado',
+                    experiencia: respuestasMapeadas[PREGUNTAS_OPENAI_ORDEN[6]] || 'No encontrado',
+                    salud_pension: respuestasMapeadas[PREGUNTAS_OPENAI_ORDEN[7]] || 'No encontrado',
+                    anexos: respuestasMapeadas[PREGUNTAS_OPENAI_ORDEN[8]] || 'No encontrado',
+                    cronograma: respuestasMapeadas[PREGUNTAS_OPENAI_ORDEN[9]] || 'No encontrado'
+                };
+
+                console.log('📋 Respuestas para plantillas:', processAnswers);
+
+                // Determinar qué plantillas usar (específicas tienen prioridad)
+                const processSpecificTemplates = specificTemplates[currentProcessName] || [];
+                const templatesToUse = processSpecificTemplates.length > 0 ? processSpecificTemplates : templateFiles;
+
+                console.log(`📝 Usando ${templatesToUse.length} plantillas para el proceso ${currentProcessName}`);
+                console.log(`📎 Incluyendo ${pdfFiles.length} PDFs`);
+
+                // Preparar datos para enviar al backend
+                const folderData = {
+                    processName: currentProcessName,
+                    pdfFiles: pdfFiles,
+                    templateFiles: templatesToUse,
+                    processAnswers: processAnswers,
+                    usingSpecificTemplates: processSpecificTemplates.length > 0
+                };
+
+                console.log('📤 Enviando datos al backend:', {
+                    processName: folderData.processName,
+                    pdfsCount: folderData.pdfFiles.length,
+                    templatesCount: folderData.templateFiles.length,
+                    usingSpecific: folderData.usingSpecificTemplates
+                });
+
+                // Enviar al backend para procesamiento
+                const response = await fetch('/generar-carpeta-rocastor', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(folderData)
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+
+                    // Limpiar el nombre del proceso para usar como nombre de archivo
+                    const cleanProcessName = currentProcessName.replace(/[^a-zA-Z0-9_-]/g, '_');
+                    a.download = `${cleanProcessName}.zip`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+
+                    console.log('✅ Carpeta descargada exitosamente');
+
+                    alert(`✅ Carpeta generada y descargada exitosamente!\n\n📁 Contenido incluido:\n• ${pdfFiles.length} PDFs reales en carpeta "PDFs_Ofertas"\n• ${templatesToUse.length} plantillas diligenciadas con datos del proceso\n• Archivo de resumen del proceso\n\n🎯 Proceso: ${currentProcessName}\n📝 Entidad: ${processAnswers.entidad}\n💰 Valor: ${processAnswers.valor}`);
+                } else {
+                    const errorData = await response.json();
+                    console.error('❌ Error del servidor:', errorData);
+                    alert('❌ Error generando carpeta: ' + errorData.detail);
+                }
+
+            } catch (error) {
+                console.error('❌ Error generating folder:', error);
+                alert('❌ Error: ' + error.message);
+            } finally {
+                document.getElementById('generateBtn').disabled = false;
+                document.getElementById('generateBtn').innerHTML = '🚀 Generar y Descargar Carpeta Completa';
+            }
+        }
+
+        // Función para reemplazar texto de manera más inteligente con reconocimiento de campos
+        function replace_text_smart(text) {
+            let result_text = text;
+
+            // Reemplazos exactos primero
+            Object.entries(replacements).forEach(([old_text, new_text]) => {
+                if (result_text.includes(old_text)) {
+                    result_text = result_text.replace(new RegExp(old_text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), new_text);
+                }
+            });
+
+            // RECONOCIMIENTO INTELIGENTE DE CAMPOS - Nueva funcionalidad
+            const campo_patterns = {
+                // Patrones para entidad
+                'entidad': [
+                    /Entidad\s*:/gi,
+                    /Entidad\s+contratante\s*:/gi,
+                    /Nombre\s+de\s+la\s+entidad\s*:/gi,
+                    /Institución\s*:/gi,
+                    /Señores\s*$/gmi
+                ],
+                // Patrones para NIT
+                'nit': [
+                    /NIT\s*:/gi,
+                    /NIT\s*\.\s*:/gi,
+                    /N\.?I\.?T\.?\s*:/gi,
+                    /Número\s+de\s+identificación\s*:/gi
+                ],
+                // Patrones para dirección
+                'direccion': [
+                    /Dirección\s*:/gi,
+                    /Dirección\s+de\s+la\s+entidad\s*:/gi,
+                    /Dir\.\s*:/gi,
+                    /Ubicación\s*:/gi
+                ],
+                // Patrones para ciudad
+                'ciudad': [
+                    /Ciudad\s*:/gi,
+                    /Ciudad\s*$/gmi,
+                    /Municipio\s*:/gi,
+                    /Lugar\s*:/gi
+                ],
+                // Patrones para objeto
+                'objeto': [
+                    /Objeto\s*:/gi,
+                    /Objeto\s+del\s+contrato\s*:/gi,
+                    /Descripción\s*:/gi,
+                    /Ref\s*:\s*/gi
+                ],
+                // Patrones para valor
+                'valor': [
+                    /Valor\s*:/gi,
+                    /Presupuesto\s*:/gi,
+                    /Monto\s*:/gi,
+                    /Precio\s*:/gi
+                ]
+            };
+
+            // Aplicar reconocimiento inteligente de campos
+            Object.entries(campo_patterns).forEach(([campo, patterns]) => {
+                const valor_campo = process_answers[campo];
+                if (valor_campo) {
+                    patterns.forEach(pattern => {
+                        // Buscar el patrón y agregar el valor después
+                        result_text = result_text.replace(pattern, (match) => {
+                            // Si ya tiene contenido después del patrón, no reemplazar
+                            const regex_check = new RegExp(match.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*\\w+', 'i');
+                            if (regex_check.test(result_text)) {
+                                return match;
+                            }
+                            return `${match} ${valor_campo}`;
+                        });
+                    });
+                }
+            });
+
+            // Patrones de reemplazo más completos y flexibles - MEJORADO PARA FECHAS
+            const regex_patterns = {
+                // Patrones para entidad
+                [`\\{\\{ENTIDAD\\}\\}`]: process_name,
+                [`\\(ENTIDAD\\)`]: process_name,
+                [`\\[ENTIDAD\\]`]: process_name,
+                [`\\{ENTIDAD\\}`]: process_name,
+
+                // Patrones para NIT
+                [`\\{\\{NIT\\}\\}`]: `NIT: ${process_answers.nit || ''}`,
+                [`\\(NIT\\)`]: `NIT: ${process_answers.nit || ''}`,
+                [`\\[NIT\\]`]: `NIT: ${process_answers.nit || ''}`,
+                [`\\{NIT\\}`]: `NIT: ${process_answers.nit || ''}`,
+
+                // Patrones flexibles para proceso
+                [`proceso\\s+\\{PROCESO\\}`]: `proceso ${process_name}`,
+                [`proceso\\s+\\(PROCESO\\)`]: `proceso ${process_name}`,
+                [`proceso\\s+\\{\\{PROCESO\\}\\}`]: `proceso ${process_name}`,
+
+                // PATRONES MEJORADOS PARA FECHAS - Múltiples formatos
+                [`\\{\\{FECHA\\}\\}`]: fecha_larga,
+                [`\\(FECHA\\)`]: fecha_larga,
+                [`\\[FECHA\\]`]: fecha_larga,
+                [`\\{FECHA\\}`]: fecha_larga,
+
+                // Patrones específicos para ciudades con fecha (como en la imagen)
+                [`Bogotá\\s+D\\.C\\.\\s*,\\s*\\(FECHA\\)`]: `Bogotá D.C., ${fecha_larga}`,
+                [`Bogotá\\s+D\\.C\\.\\s*,\\s*\\{FECHA\\}`]: `Bogotá D.C., ${fecha_larga}`,
+                [`Bogotá\\s+D\\.C\\.\\s*,\\s*\\{\\{FECHA\\}\\}`]: `Bogotá D.C., ${fecha_larga}`,
+                [`Bogotá\\s+D\\.C\\.\\s*,\\s*\\[FECHA\\]`]: `Bogotá D.C., ${fecha_larga}`,
+
+                // Patrones generales para cualquier ciudad con fecha
+                [`([A-Za-z\\s]+),\\s*\\(FECHA\\)`]: `$1, ${fecha_larga}`,
+                [`([A-Za-z\\s]+),\\s*\\{FECHA\\}`]: `$1, ${fecha_larga}`,
+                [`([A-Za-z\\s]+),\\s*\\{\\{FECHA\\}\\}`]: `$1, ${fecha_larga}`,
+                [`([A-Za-z\\s]+),\\s*\\[FECHA\\]`]: `$1, ${fecha_larga}`,
+
+                // Fecha sola en diferentes formatos
+                [`FECHA_ACTUAL`]: fecha_larga,
+                [`FECHA_HOY`]: fecha_larga,
+                [`HOY`]: fecha_larga
+            };
+
+            Object.entries(regex_patterns).forEach(([pattern, replacement]) => {
+                const regex = new RegExp(pattern, 'gi');
+                result_text = result_text.replace(regex, replacement);
+            });
+
+            return result_text;
+        }
+
+        // Event listener para cambio de proceso - MEJORADO
+        document.getElementById('processSelect').addEventListener('change', async function() {
+            const selectedValue = this.value;
+            if (selectedValue && selectedValue !== '') {
+                processName = selectedValue;
+
+                // Mostrar notificación de carga automática
+                console.log(`🔄 Proceso seleccionado: ${selectedValue} - Iniciando carga automática completa...`);
+
+                // Mostrar mensaje temporal en la página
+                const processInfo = document.getElementById('processInfo');
+                processInfo.innerHTML = `
+                    <h4>📊 Datos del Proceso: ${selectedValue}</h4>
+                    <div style="background: rgba(34, 197, 94, 0.1); padding: 15px; border-radius: 8px; border: 1px solid rgba(34, 197, 94, 0.3); margin: 10px 0;">
+                        <p style="color: #22c55e; margin: 0;"><strong>🔄 Carga Automática Activada</strong></p>
+                        <p style="color: #22c55e; margin: 5px 0 0 0; font-size: 0.9em;">
+                            ✅ Cargando PDFs disponibles<br>
+                            ✅ Cargando plantillas generales<br>
+                            ✅ Cargando plantillas específicas del proceso<br>
+                            ✅ Preparando datos para generación automática
+                        </p>
+                    </div>
+                `;
+
+                try {
+                    // CARGA AUTOMÁTICA COMPLETA
+                    console.log('📄 Fase 1: Cargando PDFs automáticamente...');
+                    await loadPDFsFromServer();
+                    
+                    console.log('📝 Fase 2: Cargando plantillas generales automáticamente...');
+                    await loadTemplatesFromServer();
+                    
+                    console.log(`🎯 Fase 3: Cargando plantillas específicas para ${selectedValue}...`);
+                    await loadSpecificTemplatesFromServer(selectedValue);
+                    
+                    console.log('📊 Fase 4: Cargando datos del proceso...');
+                    await loadProcessData();
+
+                    console.log('✅ Carga automática completada exitosamente');
+
+                    // Mostrar mensaje de éxito
+                    setTimeout(() => {
+                        const currentInfo = document.getElementById('processInfo').innerHTML;
+                        if (currentInfo.includes('Carga Automática Activada')) {
+                            // Solo actualizar si aún está mostrando el mensaje de carga
+                            loadProcessData();
+                        }
+                    }, 2000);
+
+                } catch (error) {
+                    console.error('❌ Error en carga automática:', error);
+                    processInfo.innerHTML = `
+                        <h4>📊 Datos del Proceso: ${selectedValue}</h4>
+                        <div style="background: rgba(239, 68, 68, 0.1); padding: 15px; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.3); margin: 10px 0;">
+                            <p style="color: #ef4444; margin: 0;"><strong>❌ Error en carga automática</strong></p>
+                            <p style="color: #ef4444; margin: 5px 0 0 0; font-size: 0.9em;">
+                                Error: ${error.message || 'Error desconocido'}
+                            </p>
+                        </div>
+                    `;
+                }
+            } else {
+                // Limpiar datos si no hay proceso seleccionado
+                currentProcessAnswers = {};
+                selectedProcess = null;
+                document.getElementById('processInfo').innerHTML = '<h4>📊 Datos del Proceso</h4><p>Selecciona un proceso para ver sus datos aquí.</p>';
+                document.getElementById('generateBtn').disabled = true;
+                loadAvailableTemplates();
+            }
+        });
+
+        function showError(title, message) {
+            alert(`${title}\n\n${message}`);
+        }
+
+        function showSuccessNotification(message) {
+            // Crear notificación temporal
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #48bb78, #38a169);
+                color: white;
+                padding: 15px 25px;
+                border-radius: 12px;
+                box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+                z-index: 10000;
+                font-weight: 600;
+                font-size: 0.95rem;
+                max-width: 400px;
+                word-wrap: break-word;
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255,255,255,0.2);
+                animation: slideInRight 0.3s ease-out;
+            `;
+            
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 1.2rem;">🎯</span>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            // Agregar animación CSS
+            addNotificationStyles();
+            
+            document.body.appendChild(notification);
+            
+            // Auto-remover después de 5 segundos
+            setTimeout(() => {
+                removeNotification(notification);
+            }, 5000);
+            
+            // Click para cerrar
+            notification.addEventListener('click', () => {
+                removeNotification(notification);
+            });
+        }
+
+        function showErrorNotification(message) {
+            // Crear notificación de error
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #f56565, #e53e3e);
+                color: white;
+                padding: 15px 25px;
+                border-radius: 12px;
+                box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+                z-index: 10000;
+                font-weight: 600;
+                font-size: 0.95rem;
+                max-width: 400px;
+                word-wrap: break-word;
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255,255,255,0.2);
+                animation: slideInRight 0.3s ease-out;
+            `;
+            
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 1.2rem;">❌</span>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            // Agregar animación CSS
+            addNotificationStyles();
+            
+            document.body.appendChild(notification);
+            
+            // Auto-remover después de 7 segundos (más tiempo para errores)
+            setTimeout(() => {
+                removeNotification(notification);
+            }, 7000);
+            
+            // Click para cerrar
+            notification.addEventListener('click', () => {
+                removeNotification(notification);
+            });
+        }
+
+        function addNotificationStyles() {
+            // Solo agregar estilos una vez
+            if (!document.getElementById('notification-styles')) {
+                const style = document.createElement('style');
+                style.id = 'notification-styles';
+                style.textContent = `
+                    @keyframes slideInRight {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                    @keyframes slideOutRight {
+                        from { transform: translateX(0); opacity: 1; }
+                        to { transform: translateX(100%); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+
+        function removeNotification(notification) {
+            notification.style.animation = 'slideOutRight 0.3s ease-in';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }
+    </script>
+</body>
+</html>

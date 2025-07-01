@@ -1,0 +1,1819 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Filtros - Robot AI</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #667eea 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            min-height: 100vh;
+            color: #2d3748;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px 30px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.1),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header h1::before {
+            content: '📊';
+            font-size: 1.8rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+            box-shadow: 0 4px 15px rgba(66, 153, 225, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #ed8936, #dd6b20);
+            color: white;
+            box-shadow: 0 4px 15px rgba(237, 137, 54, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f6e05e, #d69e2e);
+            color: #744210;
+            box-shadow: 0 4px 15px rgba(246, 224, 94, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .filters {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.1),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-group label::before {
+            content: attr(data-icon);
+            font-size: 1rem;
+        }
+
+        .form-control {
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 4px rgba(66, 153, 225, 0.1);
+            background: white;
+        }
+
+        .stats {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.1),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stats h2 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stats h2::before {
+            content: '📈';
+            font-size: 1.3rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 8px 25px rgba(66, 153, 225, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+            pointer-events: none;
+        }
+
+        .stat-card h3 {
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            opacity: 0.9;
+            font-weight: 600;
+        }
+
+        .stat-card p {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .table-responsive {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            overflow-x: auto;
+            overflow-y: auto;
+            max-height: 600px;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.1),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .table {
+            width: 100%;
+            min-width: 1200px;
+            border-collapse: collapse;
+            margin: 0;
+        }
+
+        .table thead th {
+            background: linear-gradient(135deg, #2d3748, #1a202c);
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 0.75rem;
+            border: none;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            white-space: nowrap;
+        }
+
+        .table tbody td {
+            padding: 8px 6px;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+            font-size: 0.7rem;
+            vertical-align: top;
+            background: rgba(255, 255, 255, 0.5);
+            max-width: 150px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .table tbody tr:hover {
+            background: rgba(66, 153, 225, 0.08);
+        }
+
+        .table tbody tr:hover td {
+            background: rgba(66, 153, 225, 0.08);
+        }
+
+        .status-local {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-drive {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-google-drive {
+            background: linear-gradient(135deg, #34d399, #10b981);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.7rem;
+            margin: 2px;
+            border-radius: 8px;
+        }
+
+        /* Estilos para checkboxes */
+        .checkbox-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .custom-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #4299e1;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            background: white;
+        }
+
+        .custom-checkbox:checked {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            border-color: #3182ce;
+        }
+
+        .custom-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .checkbox-viable:checked {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            border-color: #38a169;
+        }
+
+        .checkbox-no-viable:checked {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+            border-color: #e53e3e;
+        }
+
+        /* Estilos para enlaces a Google Drive */
+        .drive-link {
+            color: #4299e1 !important;
+            text-decoration: none !important;
+            font-weight: 600 !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            transition: all 0.3s ease !important;
+            padding: 4px 8px !important;
+            border-radius: 6px !important;
+        }
+
+        .drive-link:hover {
+            background: rgba(66, 153, 225, 0.1) !important;
+            color: #2c5aa0 !important;
+            transform: translateX(4px) !important;
+        }
+
+        .drive-link:active {
+            transform: translateX(2px) !important;
+        }
+
+        .drive-link::before {
+            content: '📁';
+            font-size: 1.1rem;
+        }
+
+        .drive-link:hover::before {
+            content: '🔗';
+        }
+
+        /* Scroll personalizado */
+        .table-responsive::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        .table-responsive::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 6px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            border-radius: 6px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #3182ce, #2c5aa0);
+        }
+
+        .table-responsive::-webkit-scrollbar-corner {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        /* Columnas específicas */
+        .col-nombre { width: 200px !important; }
+        .col-fecha { width: 90px !important; }
+        .col-costo { width: 80px !important; }
+        .col-revisado { width: 80px !important; text-align: center !important; }
+        .col-viable { width: 80px !important; text-align: center !important; }
+        .col-entidad { width: 180px !important; }
+        .col-nit { width: 100px !important; }
+        .col-direccion { width: 150px !important; }
+        .col-ciudad { width: 100px !important; }
+        .col-objeto { width: 200px !important; }
+        .col-valor { width: 100px !important; }
+        .col-experiencia { width: 150px !important; }
+        .col-salud { width: 120px !important; }
+        .col-anexos { width: 120px !important; }
+        .col-cronograma { width: 150px !important; }
+        .col-acciones { width: 200px !important; }
+
+        /* Animaciones de carga */
+        .loading-shimmer {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header {
+                padding: 20px;
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.6rem;
+            }
+
+            .button-group {
+                justify-content: center;
+                width: 100%;
+            }
+
+            .btn {
+                flex: 1;
+                min-width: 0;
+                justify-content: center;
+            }
+
+            .filters {
+                padding: 20px;
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+
+            .stat-card {
+                padding: 15px;
+            }
+
+            .stat-card p {
+                font-size: 1.4rem;
+            }
+
+            .table-responsive {
+                overflow-x: auto;
+            }
+
+            .table {
+                min-width: 1000px;
+            }
+
+            .table thead th,
+            .table tbody td {
+                padding: 8px;
+                font-size: 0.7rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+        <div class="header">
+            <h1>Panel de Filtros</h1>
+            <div class="button-group">
+                <a href="/" class="btn btn-primary">🏠 Inicio</a>
+                <button id="btnFiltrar" class="btn btn-primary">Aplicar Filtros</button>
+                <button id="btnExportar" class="btn btn-secondary">Exportar Tabla</button>
+                <button id="btnBorrarFiltros" class="btn btn-warning">Borrar Filtros</button>
+            </div>
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label for="storageType" data-icon="🗄️">Tipo de Almacenamiento:</label>
+                <select id="storageType" class="form-control">
+                    <option value="">Todos</option>
+                    <option value="LOCAL">Local</option>
+                    <option value="GOOGLE_DRIVE">Google Drive</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="ordenFecha" data-icon="📊">Ordenar por Fecha:</label>
+                <select id="ordenFecha" class="form-control">
+                    <option value="reciente">📅 Más Reciente Primero</option>
+                    <option value="antiguo">📅 Más Antiguo Primero</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="fechaDesde" data-icon="📅">Fecha Desde:</label>
+                <input type="date" id="fechaDesde" class="form-control">
+            </div>
+
+            <div class="filter-group">
+                <label for="fechaHasta" data-icon="📅">Fecha Hasta:</label>
+                <input type="date" id="fechaHasta" class="form-control">
+            </div>
+
+            <div class="filter-group">
+                <label for="cantidadArchivos" data-icon="📁">Cantidad de Archivos:</label>
+                <input type="number" id="cantidadArchivos" class="form-control" placeholder="Ej: 10">
+            </div>
+
+            <div class="filter-group">
+                <label for="costoDesde" data-icon="💲">Costo Desde (USD):</label>
+                <input type="number" id="costoDesde" class="form-control" placeholder="Ej: 0.50">
+            </div>
+
+            <div class="filter-group">
+                <label for="costoHasta" data-icon="💲">Costo Hasta (USD):</label>
+                <input type="number" id="costoHasta" class="form-control" placeholder="Ej: 1.50">
+            </div>
+        </div>
+
+        <div class="stats">
+            <h2>Estadísticas</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Procesos</h3>
+                    <p id="totalProcesos">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Procesos Locales</h3>
+                    <p id="procesosLocales">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Procesos en Drive</h3>
+                    <p id="procesosDrive">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Costo Total (USD)</h3>
+                    <p id="costoTotal">$0.00</p>
+                </div>
+            </div>
+        </div>
+
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th class="col-nombre">Nombre Proceso</th>
+                            <th class="col-fecha">Fecha</th>
+                            <th class="col-entidad">Entidad Contratante</th>
+                            <th class="col-nit">NIT</th>
+                            <th class="col-direccion">Dirección</th>
+                            <th class="col-ciudad">Ciudad</th>
+                            <th class="col-objeto">Objeto Contrato</th>
+                            <th class="col-valor">Valor</th>
+                            <th class="col-experiencia">Experiencia</th>
+                            <th class="col-salud">Salud/Pensión</th>
+                            <th class="col-anexos">Anexos</th>
+                            <th class="col-cronograma">Cronograma</th>
+                            <th class="col-revisado">Revisado</th>
+                            <th class="col-viable">Viable</th>
+                            <th class="col-acciones">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaResultados">
+                        <tr>
+                            <td colspan="15" style="text-align: center; padding: 20px; color: #6b7280;">Cargando datos...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        <!-- Modal para mostrar respuestas de OpenAI -->
+        <div id="modalRespuestasOpenAI" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000;">
+            <div style="position: relative; margin: 2% auto; width: 90%; max-width: 1200px; background: white; border-radius: 20px; padding: 30px; max-height: 90vh; overflow-y: auto;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px;">
+                    <h2 style="color: #2d3748; margin: 0; display: flex; align-items: center; gap: 12px;">
+                        🤖 Respuestas Originales de OpenAI
+                    </h2>
+                    <button onclick="cerrarModalOpenAI()" style="background: #f56565; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 1.1rem;">✕</button>
+                </div>
+                
+                <div id="contenidoRespuestasOpenAI" style="line-height: 1.6;">
+                    <!-- Contenido se carga dinámicamente -->
+                </div>
+                
+                <div style="text-align: center; margin-top: 25px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                    <button onclick="exportarRespuestasOpenAI()" class="btn btn-secondary" style="margin-right: 10px;">📄 Exportar como JSON</button>
+                    <button onclick="cerrarModalOpenAI()" class="btn btn-primary">Cerrar</button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        let procesos = [];
+        let procesosFiltrados = [];
+
+        // Array con el orden exacto de las preguntas enviadas a OpenAI (DEFAULT_QUESTIONS)
+        const PREGUNTAS_OPENAI_ORDEN = [
+            "¿Cuál es el nombre oficial de la entidad contratante o institución que está comprando o contratando? No incluyas ciudades, direcciones ni ubicaciones geográficas, solo el nombre de la organización.",
+            "¿Cuál es el número de NIT o identificación tributaria de la entidad contratante? Incluye solo los números, sin espacios ni caracteres especiales.",
+            "¿Cuál es la dirección física completa de la entidad contratante? Incluye solo la dirección postal, no nombres de entidades.",
+            "¿En qué ciudad está ubicada la entidad contratante? Responde solo con el nombre de la ciudad.",
+            "¿Cuál es el objeto específico del contrato, licitación o proceso de compra? Describe qué se va a contratar o comprar.",
+            "¿Cuál es el valor total del contrato, presupuesto oficial o monto estimado? Incluye solo la cifra numérica con su moneda.",
+            "¿Qué requisitos de experiencia específica se mencionan para los proponentes o contratistas?",
+            "¿Qué requisitos se mencionan sobre afiliación a salud, pensión o seguridad social?",
+            "¿Qué documentos anexos, formatos específicos o certificados se requieren entregar?",
+            "¿Cuál es el cronograma detallado del proceso? Incluye fechas, horarios y actividades específicas tal como aparecen en el documento."
+        ];
+
+        // Mapas alternativos para diferentes formatos de preguntas
+        const MAPAS_PREGUNTAS_ALTERNATIVAS = {
+            // Variantes de la pregunta 1 - Entidad
+            "¿Cuál es el nombre de la entidad?": 0,
+            "¿Cuál es el nombre oficial de la entidad?": 0,
+            
+            // Variantes de la pregunta 2 - NIT
+            "¿Cuál es el NIT de la entidad? Colócalo solo una vez": 1,
+            "¿Cuál es el NIT de la entidad?": 1,
+            "¿Cuál es el número de NIT?": 1,
+            
+            // Variantes de la pregunta 3 - Dirección
+            "¿Cuál es la dirección de la entidad? Coloca solo la dirección no coloques más texto": 2,
+            "¿Cuál es la dirección de la entidad?": 2,
+            "¿Cuál es la dirección física de la entidad?": 2,
+            "¿Cuál es la dirección completa?": 2,
+            
+            // Variantes de la pregunta 4 - Ciudad
+            "¿Cuál es la ciudad donde se encuentra la entidad? Coloca solo la ciudad no coloques más texto": 3,
+            "¿Cuál es la ciudad donde se encuentra la entidad?": 3,
+            "¿En qué ciudad se encuentra la entidad?": 3,
+            "¿Cuál es la ciudad?": 3,
+            
+            // Variantes de la pregunta 5 - Objeto
+            "¿Cuál es el objeto del contrato?": 4,
+            "¿Cuál es el objeto específico del contrato?": 4,
+            "¿Qué se va a contratar?": 4,
+            
+            // Variantes de la pregunta 6 - Valor
+            "¿Cuál es el valor del contrato? Coloca el valor exacto que aparece en el documento": 5,
+            "¿Cuál es el valor del contrato?": 5,
+            "¿Cuál es el valor total?": 5,
+            "¿Cuál es el presupuesto?": 5,
+            
+            // Variantes de la pregunta 7 - Experiencia
+            "¿Qué requisitos de experiencia se mencionan?": 6,
+            "¿Cuáles son los requisitos de experiencia?": 6,
+            "¿Qué experiencia se requiere?": 6,
+            
+            // Variantes de la pregunta 8 - Salud/Pensión
+            "¿Qué requisitos de salud y pensión se mencionan?": 7,
+            "¿Cuáles son los requisitos de seguridad social?": 7,
+            "¿Qué se requiere de afiliación?": 7,
+            
+            // Variantes de la pregunta 9 - Anexos
+            "¿Qué documentos anexos se requieren?": 8,
+            "¿Cuáles son los anexos requeridos?": 8,
+            "¿Qué formatos se deben entregar?": 8,
+            
+            // Variantes de la pregunta 10 - Cronograma
+            "¿Cuál es el cronograma del proceso?": 9,
+            "¿Cuáles son las fechas importantes?": 9,
+            "¿Cuál es el calendario?": 9
+        };
+
+        function limpiarRespuestaOpenAI(respuesta, tipoPregunta) {
+            if (!respuesta || respuesta === 'No encontrado') {
+                return 'No encontrado';
+            }
+
+            let respuestaLimpia = respuesta.trim();
+
+            // Patrones comunes de respuestas que debemos limpiar - VERSIÓN AMPLIADA
+            const patronesLimpiar = [
+                // Patrones para Entidad/Nombre
+                /^El nombre oficial de la entidad contratante es:?\s*/i,
+                /^El nombre oficial de la entidad contratante o institución que está comprando o contratando es:?\s*/i,
+                /^El nombre oficial de la entidad contratante o institución es:?\s*/i,
+                /^El nombre de la entidad contratante es:?\s*/i,
+                /^El nombre de la entidad es:?\s*/i,
+                /^La entidad contratante es:?\s*/i,
+                /^La institución que está comprando o contratando es:?\s*/i,
+                /^La organización es:?\s*/i,
+                
+                // Patrones para NIT
+                /^El número de NIT o identificación tributaria de la entidad contratante es:?\s*/i,
+                /^El NIT de la entidad contratante es:?\s*/i,
+                /^El NIT es:?\s*/i,
+                /^El número de NIT es:?\s*/i,
+                /^El número de identificación tributaria es:?\s*/i,
+                /^La identificación tributaria es:?\s*/i,
+                
+                // Patrones para Dirección
+                /^La dirección física completa de la entidad contratante es:?\s*/i,
+                /^La dirección de la entidad contratante es:?\s*/i,
+                /^La dirección física de la entidad es:?\s*/i,
+                /^La dirección es:?\s*/i,
+                /^La dirección postal es:?\s*/i,
+                /^La dirección completa es:?\s*/i,
+                
+                // Patrones para Ciudad
+                /^La ciudad donde está ubicada la entidad contratante es:?\s*/i,
+                /^La ciudad donde se encuentra la entidad contratante es:?\s*/i,
+                /^La ciudad donde se encuentra la entidad es:?\s*/i,
+                /^En qué ciudad está ubicada la entidad contratante:?\s*/i,
+                /^La ciudad es:?\s*/i,
+                /^La ubicación es:?\s*/i,
+                
+                // Patrones para Objeto del Contrato
+                /^El objeto específico del contrato, licitación o proceso de compra es:?\s*/i,
+                /^El objeto específico del contrato es:?\s*/i,
+                /^El objeto del contrato es:?\s*/i,
+                /^El objeto es:?\s*/i,
+                /^Qué se va a contratar o comprar:?\s*/i,
+                /^Lo que se va a contratar es:?\s*/i,
+                /^Se va a contratar:?\s*/i,
+                
+                // Patrones para Valor
+                /^El valor total del contrato, presupuesto oficial o monto estimado es:?\s*/i,
+                /^El valor total del contrato es:?\s*/i,
+                /^El valor del contrato es:?\s*/i,
+                /^El valor es:?\s*/i,
+                /^El presupuesto oficial es:?\s*/i,
+                /^El monto estimado es:?\s*/i,
+                /^El presupuesto es:?\s*/i,
+                
+                // Patrones para Experiencia
+                /^Los requisitos de experiencia específica que se mencionan para los proponentes o contratistas son:?\s*/i,
+                /^Los requisitos de experiencia específica mencionados son:?\s*/i,
+                /^Los requisitos de experiencia son:?\s*/i,
+                /^Qué requisitos de experiencia específica se mencionan:?\s*/i,
+                /^Se requiere experiencia en:?\s*/i,
+                /^La experiencia requerida es:?\s*/i,
+                
+                // Patrones para Salud/Pensión
+                /^Los requisitos que se mencionan sobre afiliación a salud, pensión o seguridad social son:?\s*/i,
+                /^Los requisitos mencionados sobre afiliación a salud, pensión o seguridad social son:?\s*/i,
+                /^Los requisitos de salud, pensión o seguridad social son:?\s*/i,
+                /^Los requisitos de salud y pensión son:?\s*/i,
+                /^Qué requisitos se mencionan sobre afiliación a salud, pensión o seguridad social:?\s*/i,
+                /^Se menciona que:?\s*/i,
+                /^Sobre salud y pensión se menciona:?\s*/i,
+                
+                // Patrones para Anexos
+                /^Los documentos anexos, formatos específicos o certificados que se requieren entregar son:?\s*/i,
+                /^Los documentos anexos, formatos específicos o certificados requeridos son:?\s*/i,
+                /^Los documentos anexos requeridos son:?\s*/i,
+                /^Qué documentos anexos, formatos específicos o certificados se requieren entregar:?\s*/i,
+                /^Se requieren los siguientes documentos:?\s*/i,
+                /^Los formatos requeridos son:?\s*/i,
+                
+                // Patrones para Cronograma
+                /^El cronograma detallado del proceso es:?\s*/i,
+                /^El cronograma del proceso es:?\s*/i,
+                /^El cronograma es:?\s*/i,
+                /^Cuál es el cronograma detallado del proceso:?\s*/i,
+                /^Las fechas del proceso son:?\s*/i,
+                /^El calendario del proceso incluye:?\s*/i,
+                
+                // Patrones generales de introducción
+                /^En el texto se menciona que:?\s*/i,
+                /^En el texto no se menciona\s*/i,
+                /^En el texto proporcionado\s*/i,
+                /^El texto no especifica\s*/i,
+                /^El texto menciona\s*/i,
+                /^Para participar en\s*/i,
+                /^Los requisitos de\s*/i,
+                /^Según el documento\s*/i,
+                /^De acuerdo al documento\s*/i,
+                /^Basado en el documento\s*/i,
+                /^El documento establece que:?\s*/i,
+                /^Se establece que:?\s*/i,
+                /^Se indica que:?\s*/i,
+                /^Se especifica que:?\s*/i,
+                /^Se menciona que:?\s*/i,
+                
+                // Patrones de negación/ausencia de información
+                /^No se encontr[óo]\s*/i,
+                /^No se especifica\s*/i,
+                /^No se menciona\s*/i,
+                /^No se identifica\s*/i,
+                /^No se proporciona\s*/i,
+                /^No se indica\s*/i,
+                /^No se detalla\s*/i,
+                /^No aparece\s*/i,
+                /^No está disponible\s*/i,
+                /^No está especificado\s*/i,
+                /^No está mencionado\s*/i,
+                /^No está indicado\s*/i,
+                /^No está claro\s*/i,
+                /^No hay información\s*/i,
+                /^No hay datos\s*/i,
+                /^No hay mención\s*/i,
+                /^No hay referencia\s*/i,
+                /^No hay detalles\s*/i,
+                /^No hay especificación\s*/i,
+                
+                // Patrones adicionales comunes
+                /^La respuesta es:?\s*/i,
+                /^Respuesta:?\s*/i,
+                /^La información es:?\s*/i,
+                /^Los datos son:?\s*/i,
+                /^Se puede observar que:?\s*/i,
+                /^Se puede ver que:?\s*/i,
+                /^Tal como aparece en el documento:?\s*/i,
+                /^Como se indica en el documento:?\s*/i
+            ];
+
+            // Aplicar limpieza con patrones
+            for (const patron of patronesLimpiar) {
+                respuestaLimpia = respuestaLimpia.replace(patron, '');
+            }
+
+            // Limpiar puntuación extra al inicio y final
+            respuestaLimpia = respuestaLimpia.replace(/^[:\-\s\.,]+/, '');
+            respuestaLimpia = respuestaLimpia.replace(/[\s\.,]+$/, '');
+
+            // Limpiar frases redundantes adicionales
+            const frasesRedundantes = [
+                /^tal como aparecen en el documento\s*/i,
+                /^como aparece en el documento\s*/i,
+                /^incluye fechas, horarios y actividades específicas\s*/i,
+                /^incluye solo la cifra numérica con su moneda\s*/i,
+                /^incluye solo los números, sin espacios ni caracteres especiales\s*/i,
+                /^incluye solo la dirección postal, no nombres de entidades\s*/i,
+                /^responde solo con el nombre de la ciudad\s*/i,
+                /^no incluyas ciudades, direcciones ni ubicaciones geográficas\s*/i,
+                /^solo el nombre de la organización\s*/i
+            ];
+
+            for (const frase of frasesRedundantes) {
+                respuestaLimpia = respuestaLimpia.replace(frase, '');
+            }
+
+            // Si después de la limpieza queda muy poco, revisar casos especiales
+            if (respuestaLimpia.length < 3) {
+                const respuestaOriginalLower = respuesta.toLowerCase();
+                
+                if (respuestaOriginalLower.includes('no se encontró') || 
+                    respuestaOriginalLower.includes('no se menciona') || 
+                    respuestaOriginalLower.includes('no especifica') || 
+                    respuestaOriginalLower.includes('no está disponible') ||
+                    respuestaOriginalLower.includes('no proporcionado') ||
+                    respuestaOriginalLower.includes('no indicado') ||
+                    respuestaOriginalLower.includes('no aparece') ||
+                    respuestaOriginalLower.includes('no hay información') ||
+                    respuestaOriginalLower.includes('información no disponible')) {
+                    return 'No especificado';
+                }
+            }
+
+            // Aplicar limpieza específica por tipo de pregunta
+            switch (tipoPregunta) {
+                case 'nit':
+                    // Para NIT, extraer solo números, guiones y puntos
+                    const nitMatch = respuestaLimpia.match(/[\d\-\.]+/);
+                    if (nitMatch && nitMatch[0].length >= 8) { // NITs mínimo 8 dígitos
+                        respuestaLimpia = nitMatch[0];
+                    }
+                    break;
+                
+                case 'valor':
+                    // Para valores, mantener números, símbolos de moneda y puntuación
+                    const valorMatch = respuestaLimpia.match(/[\$\d\.,\s]+(?:COP|USD|PESOS|MILLONES|BILLIONS|SMMLV)?/i);
+                    if (valorMatch) {
+                        respuestaLimpia = valorMatch[0].trim();
+                    }
+                    break;
+                
+                case 'ciudad':
+                    // Para ciudades, capitalizar primera letra y limpiar extras
+                    if (respuestaLimpia && respuestaLimpia.length > 1) {
+                        respuestaLimpia = respuestaLimpia.charAt(0).toUpperCase() + respuestaLimpia.slice(1).toLowerCase();
+                        // Limpiar posibles extras en ciudades
+                        respuestaLimpia = respuestaLimpia.replace(/\s*\([^)]*\)/g, ''); // Eliminar paréntesis
+                        respuestaLimpia = respuestaLimpia.replace(/\s*,.*$/g, ''); // Eliminar todo después de coma
+                    }
+                    break;
+                
+                case 'entidad':
+                    // Para entidades, capitalizar palabras importantes
+                    if (respuestaLimpia && respuestaLimpia.length > 2) {
+                        respuestaLimpia = respuestaLimpia.replace(/\b\w+/g, function(word) {
+                            // Capitalizar solo si no son palabras pequeñas (de, del, la, el, etc.)
+                            if (['de', 'del', 'la', 'el', 'los', 'las', 'y', 'e', 'en', 'por', 'para'].includes(word.toLowerCase())) {
+                                return word.toLowerCase();
+                            }
+                            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+                        });
+                    }
+                    break;
+            }
+
+            // Limpiar espacios extra
+            respuestaLimpia = respuestaLimpia.replace(/\s+/g, ' ').trim();
+
+            // Si está vacío después de la limpieza, devolver "No especificado"
+            if (!respuestaLimpia.trim()) {
+                return 'No especificado';
+            }
+
+            return respuestaLimpia.trim();
+        }
+
+        function mapearRespuestasOpenAI(analisisCompleto) {
+            console.log('🔄 Mapeando respuestas de OpenAI...');
+            console.log('📝 Análisis completo recibido:', analisisCompleto);
+
+            const respuestasMapeadas = {};
+
+            // Verificar si tenemos el formato de análisis completo con preguntas numeradas
+            if (analisisCompleto && Array.isArray(analisisCompleto)) {
+                console.log('📋 Procesando array de análisis...');
+
+                // Mapear por número de pregunta O por texto de pregunta
+                analisisCompleto.forEach((item, index) => {
+                    if (item && typeof item === 'object') {
+                        const numeroP = item.pregunta_numero || (index + 1);
+                        const preguntaTexto = item.pregunta || '';
+                        const respuesta = item.respuesta || 'No encontrado';
+
+                        let preguntaKey = null;
+                        let tipoPregunta = '';
+
+                        // MÉTODO 1: Mapear por número de pregunta
+                        if (numeroP >= 1 && numeroP <= PREGUNTAS_OPENAI_ORDEN.length) {
+                            preguntaKey = PREGUNTAS_OPENAI_ORDEN[numeroP - 1];
+                            // Determinar tipo de pregunta
+                            if (numeroP === 1) tipoPregunta = 'entidad';
+                            else if (numeroP === 2) tipoPregunta = 'nit';
+                            else if (numeroP === 3) tipoPregunta = 'direccion';
+                            else if (numeroP === 4) tipoPregunta = 'ciudad';
+                            else if (numeroP === 5) tipoPregunta = 'objeto';
+                            else if (numeroP === 6) tipoPregunta = 'valor';
+                        }
+                        // MÉTODO 2: Mapear por texto exacto de pregunta alternativa
+                        else if (MAPAS_PREGUNTAS_ALTERNATIVAS[preguntaTexto] !== undefined) {
+                            const indice = MAPAS_PREGUNTAS_ALTERNATIVAS[preguntaTexto];
+                            preguntaKey = PREGUNTAS_OPENAI_ORDEN[indice];
+                            console.log(`🔄 Mapeo alternativo: "${preguntaTexto}" -> Pregunta ${indice + 1}`);
+                            
+                            // Determinar tipo de pregunta
+                            if (indice === 0) tipoPregunta = 'entidad';
+                            else if (indice === 1) tipoPregunta = 'nit';
+                            else if (indice === 2) tipoPregunta = 'direccion';
+                            else if (indice === 3) tipoPregunta = 'ciudad';
+                            else if (indice === 4) tipoPregunta = 'objeto';
+                            else if (indice === 5) tipoPregunta = 'valor';
+                        }
+                        // MÉTODO 3: Mapear por coincidencia parcial de palabras clave
+                        else if (preguntaTexto) {
+                            const preguntaLower = preguntaTexto.toLowerCase();
+                            
+                            if (preguntaLower.includes('nit') || preguntaLower.includes('identificación') || preguntaLower.includes('tributaria')) {
+                                preguntaKey = PREGUNTAS_OPENAI_ORDEN[1]; // NIT
+                                tipoPregunta = 'nit';
+                                console.log(`🔍 Detectado NIT por palabra clave: "${preguntaTexto}"`);
+                            }
+                            else if ((preguntaLower.includes('entidad') || preguntaLower.includes('nombre') || preguntaLower.includes('institución') || preguntaLower.includes('organización')) && !preguntaLower.includes('dirección') && !preguntaLower.includes('ciudad')) {
+                                preguntaKey = PREGUNTAS_OPENAI_ORDEN[0]; // Entidad
+                                tipoPregunta = 'entidad';
+                                console.log(`🔍 Detectado Entidad por palabra clave: "${preguntaTexto}"`);
+                            }
+                            else if (preguntaLower.includes('dirección') || preguntaLower.includes('direccion') || preguntaLower.includes('dirección física') || preguntaLower.includes('dirección completa')) {
+                                preguntaKey = PREGUNTAS_OPENAI_ORDEN[2]; // Dirección
+                                tipoPregunta = 'direccion';
+                                console.log(`🔍 Detectado Dirección por palabra clave: "${preguntaTexto}"`);
+                            }
+                            else if (preguntaLower.includes('ciudad') && !preguntaLower.includes('dirección')) {
+                                preguntaKey = PREGUNTAS_OPENAI_ORDEN[3]; // Ciudad
+                                tipoPregunta = 'ciudad';
+                                console.log(`🔍 Detectado Ciudad por palabra clave: "${preguntaTexto}"`);
+                            }
+                            else if (preguntaLower.includes('objeto') || (preguntaLower.includes('contrato') && (preguntaLower.includes('qué') || preguntaLower.includes('específico')))) {
+                                preguntaKey = PREGUNTAS_OPENAI_ORDEN[4]; // Objeto
+                                tipoPregunta = 'objeto';
+                                console.log(`🔍 Detectado Objeto por palabra clave: "${preguntaTexto}"`);
+                            }
+                            else if (preguntaLower.includes('valor') || preguntaLower.includes('presupuesto') || preguntaLower.includes('monto') || preguntaLower.includes('costo')) {
+                                preguntaKey = PREGUNTAS_OPENAI_ORDEN[5]; // Valor
+                                tipoPregunta = 'valor';
+                                console.log(`🔍 Detectado Valor por palabra clave: "${preguntaTexto}"`);
+                            }
+                            else if (preguntaLower.includes('experiencia') || preguntaLower.includes('requisitos de experiencia')) {
+                                preguntaKey = PREGUNTAS_OPENAI_ORDEN[6]; // Experiencia
+                                tipoPregunta = 'experiencia';
+                                console.log(`🔍 Detectado Experiencia por palabra clave: "${preguntaTexto}"`);
+                            }
+                            else if (preguntaLower.includes('salud') || preguntaLower.includes('pensión') || preguntaLower.includes('pension') || preguntaLower.includes('seguridad social') || preguntaLower.includes('afiliación')) {
+                                preguntaKey = PREGUNTAS_OPENAI_ORDEN[7]; // Salud/Pensión
+                                tipoPregunta = 'salud';
+                                console.log(`🔍 Detectado Salud/Pensión por palabra clave: "${preguntaTexto}"`);
+                            }
+                            else if (preguntaLower.includes('anexos') || preguntaLower.includes('documentos') || preguntaLower.includes('formatos') || preguntaLower.includes('certificados')) {
+                                preguntaKey = PREGUNTAS_OPENAI_ORDEN[8]; // Anexos
+                                tipoPregunta = 'anexos';
+                                console.log(`🔍 Detectado Anexos por palabra clave: "${preguntaTexto}"`);
+                            }
+                            else if (preguntaLower.includes('cronograma') || preguntaLower.includes('fechas') || preguntaLower.includes('calendario') || preguntaLower.includes('horarios') || preguntaLower.includes('actividades')) {
+                                preguntaKey = PREGUNTAS_OPENAI_ORDEN[9]; // Cronograma
+                                tipoPregunta = 'cronograma';
+                                console.log(`🔍 Detectado Cronograma por palabra clave: "${preguntaTexto}"`);
+                            }
+                        }
+
+                        if (preguntaKey) {
+                            // Limpiar respuesta antes de guardarla
+                            const respuestaLimpia = limpiarRespuestaOpenAI(respuesta, tipoPregunta);
+                            respuestasMapeadas[preguntaKey] = respuestaLimpia;
+                            console.log(`📋 Pregunta ${numeroP}: ${preguntaKey.substring(0, 50)}...`);
+                            console.log(`💬 Respuesta original: ${respuesta.substring(0, 100)}...`);
+                            console.log(`✨ Respuesta limpia: ${respuestaLimpia.substring(0, 100)}...`);
+                        } else {
+                            console.warn(`⚠️ No se pudo mapear pregunta: "${preguntaTexto}" (${numeroP})`);
+                        }
+                    }
+                });
+            }
+            // Si es un array simple de respuestas (formato antiguo)
+            else if (Array.isArray(analisisCompleto)) {
+                console.log('📋 Procesando array simple de respuestas...');
+                analisisCompleto.forEach((respuesta, index) => {
+                    if (index < PREGUNTAS_OPENAI_ORDEN.length) {
+                        const pregunta = PREGUNTAS_OPENAI_ORDEN[index];
+                        let tipoPregunta = '';
+                        if (index === 0) tipoPregunta = 'entidad';
+                        else if (index === 1) tipoPregunta = 'nit';
+                        else if (index === 2) tipoPregunta = 'direccion';
+                        else if (index === 3) tipoPregunta = 'ciudad';
+                        else if (index === 4) tipoPregunta = 'objeto';
+                        else if (index === 5) tipoPregunta = 'valor';
+                        
+                        const respuestaLimpia = limpiarRespuestaOpenAI(respuesta || 'No encontrado', tipoPregunta);
+                        respuestasMapeadas[pregunta] = respuestaLimpia;
+                    }
+                });
+            }
+            else {
+                console.warn('⚠️ Formato de análisis no reconocido:', analisisCompleto);
+            }
+
+            console.log('✅ Mapeo completado con respuestas limpias:', respuestasMapeadas);
+            return respuestasMapeadas;
+        }
+
+        function crearFilaTabla(proceso) {
+            console.log('🏗️ Creando fila para proceso:', proceso.nombre_proceso);
+            console.log('📊 Datos del proceso:', proceso);
+
+            let respuestasMapeadas = {};
+
+            // Intentar mapear respuestas desde diferentes fuentes
+            if (proceso.analisis_completo && Array.isArray(proceso.analisis_completo)) {
+                console.log('📋 Usando analisis_completo');
+                respuestasMapeadas = mapearRespuestasOpenAI(proceso.analisis_completo);
+            }
+            else if (proceso.respuestas_openai && Array.isArray(proceso.respuestas_openai)) {
+                console.log('📋 Usando respuestas_openai');
+                respuestasMapeadas = mapearRespuestasOpenAI(proceso.respuestas_openai);
+            }
+            else {
+                console.warn('⚠️ No se encontraron respuestas en el proceso:', proceso);
+            }
+
+            // Extraer respuestas específicas con limpieza aplicada
+            const entidad = limpiarRespuestaOpenAI(respuestasMapeadas[PREGUNTAS_OPENAI_ORDEN[0]] || 'No encontrado', 'entidad');
+            const nit = limpiarRespuestaOpenAI(respuestasMapeadas[PREGUNTAS_OPENAI_ORDEN[1]] || 'No encontrado', 'nit');
+            const direccion = limpiarRespuestaOpenAI(respuestasMapeadas[PREGUNTAS_OPENAI_ORDEN[2]] || 'No encontrado', 'direccion');
+            const ciudad = limpiarRespuestaOpenAI(respuestasMapeadas[PREGUNTAS_OPENAI_ORDEN[3]] || 'No encontrado', 'ciudad');
+            const objeto = limpiarRespuestaOpenAI(respuestasMapeadas[PREGUNTAS_OPENAI_ORDEN[4]] || 'No encontrado', 'objeto');
+            const valor = limpiarRespuestaOpenAI(respuestasMapeadas[PREGUNTAS_OPENAI_ORDEN[5]] || 'No encontrado', 'valor');
+            const experiencia = limpiarRespuestaOpenAI(respuestasMapeadas[PREGUNTAS_OPENAI_ORDEN[6]] || 'No encontrado', 'experiencia');
+            const saludPension = limpiarRespuestaOpenAI(respuestasMapeadas[PREGUNTAS_OPENAI_ORDEN[7]] || 'No encontrado', 'salud');
+            const anexos = limpiarRespuestaOpenAI(respuestasMapeadas[PREGUNTAS_OPENAI_ORDEN[8]] || 'No encontrado', 'anexos');
+            const cronograma = limpiarRespuestaOpenAI(respuestasMapeadas[PREGUNTAS_OPENAI_ORDEN[9]] || 'No encontrado', 'cronograma');
+
+            // Crear enlace específico a Google Drive
+            const nombreMostrar = proceso.carpeta_original || proceso.nombre_proceso || 'Sin nombre';
+            const nombreCorto = nombreMostrar.substring(0, 50) + (nombreMostrar.length > 50 ? '...' : '');
+            const driveLink = proceso.drive_link || 'https://drive.google.com/drive/folders/1EfI2gKDlYiMmsi7dTGFsyHdtqhx9FLGi';
+            
+            const fila = document.createElement('tr');
+            fila.innerHTML = `
+                <td class="col-nombre" title="Ver archivos originales en Google Drive: ${nombreMostrar}">
+                    <a href="${driveLink}" target="_blank" class="drive-link">
+                        ${nombreCorto}
+                    </a>
+                </td>
+                <td class="col-fecha">${new Date(proceso.timestamp).toLocaleDateString('es-ES')}</td>
+                <td class="col-entidad" title="${entidad}">${entidad.substring(0, 40)}${entidad.length > 40 ? '...' : ''}</td>
+                <td class="col-nit" title="${nit}">${nit.substring(0, 15)}${nit.length > 15 ? '...' : ''}</td>
+                <td class="col-direccion" title="${direccion}">${direccion.substring(0, 30)}${direccion.length > 30 ? '...' : ''}</td>
+                <td class="col-ciudad" title="${ciudad}">${ciudad.substring(0, 15)}${ciudad.length > 15 ? '...' : ''}</td>
+                <td class="col-objeto" title="${objeto}">${objeto.substring(0, 50)}${objeto.length > 50 ? '...' : ''}</td>
+                <td class="col-valor" title="${valor}">${valor.substring(0, 20)}${valor.length > 20 ? '...' : ''}</td>
+                <td class="col-experiencia" title="${experiencia}">${experiencia.substring(0, 30)}${experiencia.length > 30 ? '...' : ''}</td>
+                <td class="col-salud" title="${saludPension}">${saludPension.substring(0, 25)}${saludPension.length > 25 ? '...' : ''}</td>
+                <td class="col-anexos" title="${anexos}">${anexos.substring(0, 25)}${anexos.length > 25 ? '...' : ''}</td>
+                <td class="col-cronograma" title="${cronograma}">${cronograma.substring(0, 30)}${cronograma.length > 30 ? '...' : ''}</td>
+                <td class="col-revisado">
+                    <div class="checkbox-container">
+                        <input type="checkbox" class="custom-checkbox" id="revisado_${proceso.nombre_proceso}" 
+                               onchange="marcarRevisado('${proceso.nombre_proceso}', this.checked)">
+                    </div>
+                </td>
+                <td class="col-viable">
+                    <div class="checkbox-container">
+                        <select class="form-control" style="font-size: 0.7rem; padding: 4px;" 
+                                onchange="marcarViabilidad('${proceso.nombre_proceso}', this.value)">
+                            <option value="">-</option>
+                            <option value="viable">✅ Viable</option>
+                            <option value="no-viable">❌ No Viable</option>
+                        </select>
+                    </div>
+                </td>
+                <td class="col-acciones">
+                    <button class="btn btn-primary btn-small" onclick="verDetalles('${proceso.nombre_proceso}')">📋</button>
+                    <button class="btn btn-secondary btn-small" onclick="exportarProceso('${proceso.nombre_proceso}')">📤</button>
+                    <button class="btn btn-warning btn-small" onclick="verRespuestasOpenAI('${proceso.nombre_proceso}')">🤖</button>
+                    <button class="btn btn-success btn-small" onclick="generarArchivos('${proceso.nombre_proceso}')" title="Generar archivos en Rocastor">📁</button>
+                </td>
+            `;
+
+            return fila;
+        }
+
+        async function obtenerEnlaceGoogleDrive(nombreProceso) {
+            try {
+                console.log(`🔍 Buscando enlace de Google Drive para: ${nombreProceso}`);
+                
+                // Intentar obtener enlace específico desde el backend
+                const response = await fetch(`/obtener-enlace-proceso/${encodeURIComponent(nombreProceso)}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.drive_link) {
+                        console.log(`✅ Enlace encontrado: ${data.drive_link}`);
+                        return data.drive_link;
+                    }
+                }
+                
+                // Fallback: usar enlace base de Drive empresarial
+                const driveEmpresarialBase = 'https://drive.google.com/drive/folders/1EfI2gKDlYiMmsi7dTGFsyHdtqhx9FLGi';
+                console.log(`⚠️ Usando enlace base de Drive empresarial`);
+                return driveEmpresarialBase;
+                
+            } catch (error) {
+                console.error(`❌ Error obteniendo enlace para ${nombreProceso}:`, error);
+                // Fallback en caso de error
+                return 'https://drive.google.com/drive/folders/1EfI2gKDlYiMmsi7dTGFsyHdtqhx9FLGi';
+            }
+        }
+
+        async function cargarProcesos() {
+            try {
+                console.log('🔄 Cargando procesos...');
+
+                const response = await fetch('/lista-procesos');
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                console.log('📊 Datos recibidos:', data);
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Error desconocido');
+                }
+
+                procesos = data.procesos || [];
+                procesosFiltrados = [...procesos];
+                
+                // Aplicar ordenamiento por defecto (más reciente primero)
+                aplicarOrdenamiento('reciente');
+
+                console.log(`✅ Cargados ${procesos.length} procesos`);
+
+                // Cargar enlaces de Drive para cada proceso
+                console.log('🔗 Cargando enlaces de Google Drive...');
+                for (let proceso of procesos) {
+                    proceso.drive_link = await obtenerEnlaceGoogleDrive(proceso.nombre_proceso);
+                }
+
+                actualizarTablaConEstados();
+                actualizarEstadisticas();
+                actualizarFiltros();
+
+            } catch (error) {
+                console.error('❌ Error cargando procesos:', error);
+                document.getElementById('tablaResultados').innerHTML = `
+                    <tr>
+                        <td colspan="15" style="text-align: center; color: #ff6b6b; padding: 20px;">
+                            ❌ Error cargando datos: ${error.message}
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function actualizarTabla() {
+            const tbody = document.getElementById('tablaResultados');
+            tbody.innerHTML = '';
+
+            if (procesosFiltrados.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="15" style="text-align: center; padding: 20px; color: #8b949e;">
+                            📝 No hay procesos que coincidan con los filtros aplicados
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            procesosFiltrados.forEach(proceso => {
+                const fila = crearFilaTabla(proceso);
+                tbody.appendChild(fila);
+            });
+
+            console.log(`✅ Tabla actualizada con ${procesosFiltrados.length} procesos`);
+        }
+
+        function actualizarEstadisticas() {
+            const totalProcesos = procesos.length;
+            const procesosLocales = procesos.filter(p => p.storage_type === 'LOCAL').length;
+            const procesosDrive = procesos.filter(p => p.storage_type === 'GOOGLE_DRIVE').length;
+            const costoTotal = procesos.reduce((acc, p) => acc + (p.costo_openai_usd || 0), 0).toFixed(2);
+
+            document.getElementById('totalProcesos').textContent = totalProcesos;
+            document.getElementById('procesosLocales').textContent = procesosLocales;
+            document.getElementById('procesosDrive').textContent = procesosDrive;
+            document.getElementById('costoTotal').textContent = `$${costoTotal}`;
+        }
+
+        function actualizarFiltros() {
+            document.getElementById('btnFiltrar').addEventListener('click', function() {
+                filtrarProcesos();
+            });
+
+            document.getElementById('btnBorrarFiltros').addEventListener('click', function() {
+                borrarFiltros();
+            });
+
+            document.getElementById('btnExportar').addEventListener('click', function() {
+                exportarTabla();
+            });
+
+            // Agregar evento automático para ordenamiento
+            document.getElementById('ordenFecha').addEventListener('change', function() {
+                const ordenSeleccionado = this.value;
+                console.log(`📊 Cambiando ordenamiento a: ${ordenSeleccionado}`);
+                aplicarOrdenamiento(ordenSeleccionado);
+                actualizarTablaConEstados();
+            });
+        }
+
+        function filtrarProcesos() {
+            console.log('🔄 Filtrando procesos...');
+
+            const storageTypeValue = document.getElementById('storageType').value;
+            const ordenFechaValue = document.getElementById('ordenFecha').value;
+            const fechaDesdeValue = document.getElementById('fechaDesde').value;
+            const fechaHastaValue = document.getElementById('fechaHasta').value;
+            const cantidadArchivosValue = document.getElementById('cantidadArchivos').value;
+            const costoDesdeValue = document.getElementById('costoDesde').value;
+            const costoHastaValue = document.getElementById('costoHasta').value;
+
+            console.log('🔍 Filtros aplicados:', {
+                storageType: storageTypeValue,
+                ordenFecha: ordenFechaValue,
+                fechaDesde: fechaDesdeValue,
+                fechaHasta: fechaHastaValue,
+                cantidadArchivos: cantidadArchivosValue,
+                costoDesde: costoDesdeValue,
+                costoHasta: costoHastaValue
+            });
+
+            procesosFiltrados = procesos.filter(proceso => {
+                let cumpleFiltro = true;
+
+                // Filtro por tipo de almacenamiento
+                if (storageTypeValue && proceso.storage_type !== storageTypeValue) {
+                    console.log(`❌ Proceso ${proceso.nombre_proceso} - Storage type: ${proceso.storage_type} != ${storageTypeValue}`);
+                    cumpleFiltro = false;
+                }
+
+                // Filtro por fecha desde
+                if (fechaDesdeValue) {
+                    const fechaProceso = new Date(proceso.timestamp);
+                    const fechaDesde = new Date(fechaDesdeValue);
+                    
+                    // Ajustar fechas para comparar solo el día (sin hora)
+                    fechaProceso.setHours(0, 0, 0, 0);
+                    fechaDesde.setHours(0, 0, 0, 0);
+                    
+                    console.log(`📅 Comparando fechas - Proceso: ${fechaProceso.toISOString().split('T')[0]} >= Filtro: ${fechaDesde.toISOString().split('T')[0]}`);
+                    
+                    if (fechaProceso < fechaDesde) {
+                        console.log(`❌ Proceso ${proceso.nombre_proceso} - Fecha muy antigua`);
+                        cumpleFiltro = false;
+                    }
+                }
+
+                // Filtro por fecha hasta
+                if (fechaHastaValue) {
+                    const fechaProceso = new Date(proceso.timestamp);
+                    const fechaHasta = new Date(fechaHastaValue);
+                    
+                    // Ajustar fechas para comparar solo el día (sin hora)
+                    fechaProceso.setHours(23, 59, 59, 999);
+                    fechaHasta.setHours(23, 59, 59, 999);
+                    
+                    console.log(`📅 Comparando fechas - Proceso: ${fechaProceso.toISOString().split('T')[0]} <= Filtro: ${fechaHasta.toISOString().split('T')[0]}`);
+                    
+                    if (fechaProceso > fechaHasta) {
+                        console.log(`❌ Proceso ${proceso.nombre_proceso} - Fecha muy reciente`);
+                        cumpleFiltro = false;
+                    }
+                }
+
+                // Filtro por cantidad de archivos
+                if (cantidadArchivosValue) {
+                    const cantidadArchivos = parseInt(cantidadArchivosValue);
+                    if (proceso.archivos_procesados !== cantidadArchivos) {
+                        console.log(`❌ Proceso ${proceso.nombre_proceso} - Archivos: ${proceso.archivos_procesados} != ${cantidadArchivos}`);
+                        cumpleFiltro = false;
+                    }
+                }
+
+                // Filtro por costo desde
+                if (costoDesdeValue) {
+                    const costoDesde = parseFloat(costoDesdeValue);
+                    if (proceso.costo_openai_usd < costoDesde) {
+                        console.log(`❌ Proceso ${proceso.nombre_proceso} - Costo: ${proceso.costo_openai_usd} < ${costoDesde}`);
+                        cumpleFiltro = false;
+                    }
+                }
+
+                // Filtro por costo hasta
+                if (costoHastaValue) {
+                    const costoHasta = parseFloat(costoHastaValue);
+                    if (proceso.costo_openai_usd > costoHasta) {
+                        console.log(`❌ Proceso ${proceso.nombre_proceso} - Costo: ${proceso.costo_openai_usd} > ${costoHasta}`);
+                        cumpleFiltro = false;
+                    }
+                }
+
+                if (cumpleFiltro) {
+                    console.log(`✅ Proceso ${proceso.nombre_proceso} cumple todos los filtros`);
+                }
+
+                return cumpleFiltro;
+            });
+
+            console.log(`✅ ${procesosFiltrados.length} procesos cumplen los filtros de ${procesos.length} totales`);
+            
+            // Aplicar ordenamiento por fecha
+            aplicarOrdenamiento(ordenFechaValue);
+            
+            actualizarTablaConEstados();
+        }
+
+        function aplicarOrdenamiento(ordenFecha) {
+            console.log(`🔄 Aplicando ordenamiento: ${ordenFecha}`);
+            
+            procesosFiltrados.sort((a, b) => {
+                const fechaA = new Date(a.timestamp);
+                const fechaB = new Date(b.timestamp);
+                
+                if (ordenFecha === 'reciente') {
+                    // Más reciente primero (descendente)
+                    return fechaB - fechaA;
+                } else {
+                    // Más antiguo primero (ascendente)
+                    return fechaA - fechaB;
+                }
+            });
+            
+            console.log(`✅ Procesos ordenados por fecha (${ordenFecha})`);
+        }
+
+        function borrarFiltros() {
+            console.log('🗑️ Borrando filtros...');
+
+            document.getElementById('storageType').value = '';
+            document.getElementById('ordenFecha').value = 'reciente'; // Mantener orden por defecto
+            document.getElementById('fechaDesde').value = '';
+            document.getElementById('fechaHasta').value = '';
+            document.getElementById('cantidadArchivos').value = '';
+            document.getElementById('costoDesde').value = '';
+            document.getElementById('costoHasta').value = '';
+
+            procesosFiltrados = [...procesos];
+            
+            // Aplicar ordenamiento por defecto (más reciente primero)
+            aplicarOrdenamiento('reciente');
+
+            console.log('✅ Filtros borrados');
+            actualizarTablaConEstados();
+        }
+
+        function exportarTabla() {
+            console.log('📤 Exportando tabla...');
+
+            const table = document.querySelector('table');
+            const ws = XLSX.utils.table_to_sheet(table);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Procesos');
+            XLSX.writeFile(wb, 'procesos.xlsx');
+
+            console.log('✅ Tabla exportada');
+        }
+
+        function verDetalles(nombreProceso) {
+            window.location.href = `/detalle-proceso?nombre=${encodeURIComponent(nombreProceso)}`;
+        }
+
+        function exportarProceso(nombreProceso) {
+             window.location.href = `/exportar-proceso?nombre=${encodeURIComponent(nombreProceso)}`;
+        }
+
+        // Variables para el modal de OpenAI
+        let procesoActualOpenAI = null;
+        let respuestasOriginalesOpenAI = null;
+
+        function verRespuestasOpenAI(nombreProceso) {
+            console.log(`🤖 Mostrando respuestas originales de OpenAI para: ${nombreProceso}`);
+            
+            // Buscar el proceso en la lista
+            const proceso = procesos.find(p => p.nombre_proceso === nombreProceso);
+            if (!proceso) {
+                alert('Proceso no encontrado');
+                return;
+            }
+
+            procesoActualOpenAI = proceso;
+            respuestasOriginalesOpenAI = proceso.analisis_completo || [];
+
+            // Generar contenido HTML para el modal
+            let contenidoHTML = `
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 12px; margin-bottom: 25px;">
+                    <h3 style="margin: 0 0 10px 0;">📊 Proceso: ${proceso.carpeta_original || nombreProceso}</h3>
+                    <p style="margin: 0; opacity: 0.9;">Fecha: ${new Date(proceso.timestamp).toLocaleString('es-ES')}</p>
+                    <p style="margin: 5px 0 0 0; opacity: 0.9;">Total respuestas: ${respuestasOriginalesOpenAI.length}</p>
+                </div>
+            `;
+
+            if (respuestasOriginalesOpenAI.length === 0) {
+                contenidoHTML += `
+                    <div style="text-align: center; padding: 40px; color: #6b7280;">
+                        <p style="font-size: 1.2rem;">❌ No se encontraron respuestas de OpenAI para este proceso</p>
+                        <p>Esto puede suceder si el proceso se ejecutó sin análisis de IA o si los datos están en formato antiguo.</p>
+                    </div>
+                `;
+            } else {
+                contenidoHTML += '<div style="display: grid; gap: 20px;">';
+                
+                respuestasOriginalesOpenAI.forEach((item, index) => {
+                    const preguntaNumero = item.pregunta_numero || (index + 1);
+                    const pregunta = item.pregunta || 'Pregunta no disponible';
+                    const respuesta = item.respuesta || 'Respuesta no disponible';
+                    const informacionEncontrada = item.informacion_encontrada !== false;
+                    const metricas = item.metricas_openai || {};
+                    
+                    const tokensUsados = metricas.tokens_usados || 0;
+                    const costoEstimado = metricas.costo_estimado || 0;
+                    
+                    const estadoColor = informacionEncontrada ? '#48bb78' : '#f56565';
+                    const estadoTexto = informacionEncontrada ? '✅ Información encontrada' : '❌ Sin información';
+                    
+                    contenidoHTML += `
+                        <div style="border: 2px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+                            <div style="background: ${estadoColor}; color: white; padding: 15px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <h4 style="margin: 0; font-size: 1.1rem;">🤖 Pregunta ${preguntaNumero}</h4>
+                                    <span style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 0.9rem;">
+                                        ${estadoTexto}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div style="padding: 20px;">
+                                <div style="margin-bottom: 15px;">
+                                    <h5 style="color: #4a5568; margin: 0 0 8px 0; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">❓ PREGUNTA ENVIADA A OPENAI:</h5>
+                                    <p style="background: #f7fafc; padding: 15px; border-radius: 8px; margin: 0; border-left: 4px solid #4299e1; font-style: italic; line-height: 1.5;">
+                                        "${pregunta}"
+                                    </p>
+                                </div>
+                                
+                                <div style="margin-bottom: 15px;">
+                                    <h5 style="color: #4a5568; margin: 0 0 8px 0; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">🤖 RESPUESTA DE OPENAI:</h5>
+                                    <div style="background: #f0fff4; padding: 15px; border-radius: 8px; border-left: 4px solid ${estadoColor};">
+                                        <p style="margin: 0; line-height: 1.6; white-space: pre-wrap;">${respuesta}</p>
+                                    </div>
+                                </div>
+                                
+                                ${tokensUsados > 0 ? `
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; background: #fafafa; padding: 12px; border-radius: 8px;">
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 4px;">Tokens Usados</div>
+                                        <div style="font-weight: bold; color: #3182ce;">${tokensUsados.toLocaleString()}</div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 4px;">Costo Estimado</div>
+                                        <div style="font-weight: bold; color: #38a169;">$${costoEstimado.toFixed(4)} USD</div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 4px;">Fragmentos</div>
+                                        <div style="font-weight: bold; color: #805ad5;">${metricas.fragmentos_procesados || 0}</div>
+                                    </div>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                contenidoHTML += '</div>';
+                
+                // Agregar resumen al final
+                const costoTotal = respuestasOriginalesOpenAI.reduce((acc, item) => 
+                    acc + ((item.metricas_openai && item.metricas_openai.costo_estimado) || 0), 0);
+                const tokensTotal = respuestasOriginalesOpenAI.reduce((acc, item) => 
+                    acc + ((item.metricas_openai && item.metricas_openai.tokens_usados) || 0), 0);
+                
+                contenidoHTML += `
+                    <div style="margin-top: 30px; background: linear-gradient(135deg, #2d3748, #1a202c); color: white; padding: 20px; border-radius: 12px;">
+                        <h4 style="margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px;">
+                            📊 Resumen del Análisis
+                        </h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                            <div style="text-align: center; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                                <div style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 5px;">Total Preguntas</div>
+                                <div style="font-size: 1.5rem; font-weight: bold;">${respuestasOriginalesOpenAI.length}</div>
+                            </div>
+                            <div style="text-align: center; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                                <div style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 5px;">Costo Total</div>
+                                <div style="font-size: 1.5rem; font-weight: bold;">$${costoTotal.toFixed(4)}</div>
+                            </div>
+                            <div style="text-align: center; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                                <div style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 5px;">Tokens Totales</div>
+                                <div style="font-size: 1.5rem; font-weight: bold;">${tokensTotal.toLocaleString()}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Mostrar el modal
+            document.getElementById('contenidoRespuestasOpenAI').innerHTML = contenidoHTML;
+            document.getElementById('modalRespuestasOpenAI').style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Prevenir scroll del fondo
+        }
+
+        function cerrarModalOpenAI() {
+            document.getElementById('modalRespuestasOpenAI').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            procesoActualOpenAI = null;
+            respuestasOriginalesOpenAI = null;
+        }
+
+        function exportarRespuestasOpenAI() {
+            if (!procesoActualOpenAI || !respuestasOriginalesOpenAI) {
+                alert('No hay datos para exportar');
+                return;
+            }
+
+            const dataToExport = {
+                proceso: procesoActualOpenAI.nombre_proceso,
+                carpeta_original: procesoActualOpenAI.carpeta_original,
+                timestamp: procesoActualOpenAI.timestamp,
+                total_respuestas: respuestasOriginalesOpenAI.length,
+                respuestas_openai_completas: respuestasOriginalesOpenAI,
+                resumen: {
+                    costo_total: respuestasOriginalesOpenAI.reduce((acc, item) => 
+                        acc + ((item.metricas_openai && item.metricas_openai.costo_estimado) || 0), 0),
+                    tokens_total: respuestasOriginalesOpenAI.reduce((acc, item) => 
+                        acc + ((item.metricas_openai && item.metricas_openai.tokens_usados) || 0), 0)
+                },
+                exportado_en: new Date().toISOString()
+            };
+
+            const dataStr = JSON.stringify(dataToExport, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `respuestas_openai_${procesoActualOpenAI.nombre_proceso}_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            console.log('✅ Respuestas de OpenAI exportadas como JSON');
+        }
+
+        // Cerrar modal con ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && document.getElementById('modalRespuestasOpenAI').style.display === 'block') {
+                cerrarModalOpenAI();
+            }
+        });
+
+        // Funciones para manejar revisado y viabilidad
+        function marcarRevisado(nombreProceso, revisado) {
+            const estadosProcesos = JSON.parse(localStorage.getItem('estadosProcesos') || '{}');
+            
+            if (!estadosProcesos[nombreProceso]) {
+                estadosProcesos[nombreProceso] = {};
+            }
+            
+            estadosProcesos[nombreProceso].revisado = revisado;
+            estadosProcesos[nombreProceso].fechaRevision = new Date().toISOString();
+            
+            localStorage.setItem('estadosProcesos', JSON.stringify(estadosProcesos));
+            
+            console.log(`✅ Proceso ${nombreProceso} marcado como ${revisado ? 'revisado' : 'no revisado'}`);
+        }
+
+        function marcarViabilidad(nombreProceso, viabilidad) {
+            const estadosProcesos = JSON.parse(localStorage.getItem('estadosProcesos') || '{}');
+            
+            if (!estadosProcesos[nombreProceso]) {
+                estadosProcesos[nombreProceso] = {};
+            }
+            
+            estadosProcesos[nombreProceso].viabilidad = viabilidad;
+            estadosProcesos[nombreProceso].fechaViabilidad = new Date().toISOString();
+            
+            localStorage.setItem('estadosProcesos', JSON.stringify(estadosProcesos));
+            
+            console.log(`✅ Proceso ${nombreProceso} marcado como ${viabilidad || 'sin definir'}`);
+        }
+
+        function cargarEstadosProcesos() {
+            const estadosProcesos = JSON.parse(localStorage.getItem('estadosProcesos') || '{}');
+            
+            // Restaurar estados de checkboxes y selects
+            Object.keys(estadosProcesos).forEach(nombreProceso => {
+                const estado = estadosProcesos[nombreProceso];
+                
+                // Restaurar checkbox de revisado
+                const checkboxRevisado = document.getElementById(`revisado_${nombreProceso}`);
+                if (checkboxRevisado && estado.revisado) {
+                    checkboxRevisado.checked = true;
+                }
+                
+                // Restaurar select de viabilidad
+                const selectViabilidad = document.querySelector(`select[onchange*="${nombreProceso}"]`);
+                if (selectViabilidad && estado.viabilidad) {
+                    selectViabilidad.value = estado.viabilidad;
+                }
+            });
+        }
+
+        // Cargar estados después de actualizar la tabla
+        function actualizarTablaConEstados() {
+            actualizarTabla();
+            setTimeout(() => {
+                cargarEstadosProcesos();
+            }, 100);
+        }
+
+        function generarArchivos(nombreProceso) {
+            console.log(`📁 Iniciando redirección a Documentos Rocastor para proceso: ${nombreProceso}`);
+            
+            // Confirmar con el usuario
+            if (confirm(`¿Deseas generar archivos para el proceso "${nombreProceso}"?\n\nSerás redirigido a Documentos Rocastor donde el proceso se cargará automáticamente.`)) {
+                
+                // Guardar el proceso seleccionado en localStorage para que Rocastor lo detecte
+                localStorage.setItem('proceso_preseleccionado_rocastor', nombreProceso);
+                console.log(`✅ Proceso guardado en localStorage: ${nombreProceso}`);
+                
+                // Verificar que se guardó correctamente
+                const procesoGuardado = localStorage.getItem('proceso_preseleccionado_rocastor');
+                if (procesoGuardado === nombreProceso) {
+                    console.log(`✅ Verificación exitosa - localStorage contiene: ${procesoGuardado}`);
+                    
+                    // Mostrar notificación de redirección
+                    const notification = document.createElement('div');
+                    notification.style.cssText = `
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        background: linear-gradient(135deg, #4299e1, #3182ce);
+                        color: white;
+                        padding: 15px 25px;
+                        border-radius: 12px;
+                        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+                        z-index: 10000;
+                        font-weight: 600;
+                        font-size: 0.95rem;
+                        max-width: 400px;
+                        word-wrap: break-word;
+                    `;
+                    
+                    notification.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.2rem;">🚀</span>
+                            <span>Redirigiendo a Documentos Rocastor...</span>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(notification);
+                    
+                    // Redirigir después de un breve retraso
+                    setTimeout(() => {
+                        window.location.href = '/documentos-rocastor';
+                    }, 800);
+                    
+                } else {
+                    console.error(`❌ Error: no se pudo guardar el proceso en localStorage`);
+                    alert('Error guardando el proceso seleccionado. Inténtalo de nuevo.');
+                }
+            } else {
+                console.log(`❌ Usuario canceló la generación de archivos para: ${nombreProceso}`);
+            }
+        }
+
+        cargarProcesos();
+        </script>
+</body>
+</html>

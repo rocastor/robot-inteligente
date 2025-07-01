@@ -1,0 +1,494 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Debug Monitor - Robot AI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background: #0d1117;
+            color: #f0f6fc;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e2029, #2d3748);
+            border-radius: 10px;
+            border: 1px solid #30363d;
+        }
+        .debug-section {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .section-header {
+            background: #21262d;
+            padding: 15px 20px;
+            border-bottom: 1px solid #30363d;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .section-content {
+            padding: 20px;
+        }
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .status-card {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-success { background: #238636; }
+        .status-warning { background: #f85149; }
+        .status-error { background: #da3633; }
+        .status-loading { background: #1f6feb; animation: pulse 2s infinite; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .log-container {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 15px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .log-success { background: rgba(35, 134, 54, 0.15); color: #7ce38b; }
+        .log-error { background: rgba(248, 81, 73, 0.15); color: #ff7b72; }
+        .log-warning { background: rgba(187, 128, 9, 0.15); color: #f2cc60; }
+        .log-info { background: rgba(31, 111, 235, 0.15); color: #79c0ff; }
+        
+        .btn {
+            background: #238636;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .btn:hover { background: #2ea043; }
+        .btn-secondary {
+            background: #21262d;
+            border: 1px solid #30363d;
+        }
+        .btn-secondary:hover { background: #30363d; }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #21262d;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #238636, #2ea043);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .metric-item {
+            text-align: center;
+            padding: 15px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+        }
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #58a6ff;
+        }
+        .metric-label {
+            color: #8b949e;
+            font-size: 0.9em;
+        }
+        
+        .json-viewer {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 15px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Debug Monitor - Robot AI</h1>
+            <p>Monitoreo en tiempo real del sistema</p>
+            <div style="margin-top: 15px;">
+                <button class="btn" onclick="runFullDiagnostics()">🚀 Ejecutar Diagnósticos</button>
+                <button class="btn btn-secondary" onclick="checkApiStatus()">📡 Test API</button>
+                <button class="btn btn-secondary" onclick="checkProcesses()">📊 Test Procesos</button>
+            </div>
+        </div>
+
+        <div class="status-grid">
+            <div class="status-card">
+                <h3><span id="apiIndicator" class="status-indicator status-loading"></span>Estado de la API</h3>
+                <div id="apiStatus">Verificando...</div>
+                <div id="apiDetails" style="margin-top: 10px; font-size: 0.9em; color: #8b949e;"></div>
+            </div>
+            
+            <div class="status-card">
+                <h3><span id="configIndicator" class="status-indicator status-loading"></span>Configuración</h3>
+                <div id="configStatus">Verificando...</div>
+                <div id="configDetails" style="margin-top: 10px; font-size: 0.9em; color: #8b949e;"></div>
+            </div>
+            
+            <div class="status-card">
+                <h3><span id="storageIndicator" class="status-indicator status-loading"></span>Almacenamiento</h3>
+                <div id="storageStatus">Verificando...</div>
+                <div id="storageDetails" style="margin-top: 10px; font-size: 0.9em; color: #8b949e;"></div>
+            </div>
+            
+            <div class="status-card">
+                <h3><span id="processIndicator" class="status-indicator status-loading"></span>Procesos</h3>
+                <div id="processStatus">Verificando...</div>
+                <div id="processDetails" style="margin-top: 10px; font-size: 0.9em; color: #8b949e;"></div>
+            </div>
+        </div>
+
+        <div class="debug-section">
+            <div class="section-header">
+                <h3>📊 Métricas del Sistema</h3>
+                <button class="btn btn-secondary" onclick="refreshMetrics()">🔄 Actualizar</button>
+            </div>
+            <div class="section-content">
+                <div class="metrics-grid" id="metricsGrid">
+                    <!-- Métricas se cargan dinámicamente -->
+                </div>
+            </div>
+        </div>
+
+        <div class="debug-section">
+            <div class="section-header">
+                <h3>📋 Logs en Tiempo Real</h3>
+                <button class="btn btn-secondary" onclick="clearLogs()">🗑️ Limpiar</button>
+            </div>
+            <div class="section-content">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressBar"></div>
+                </div>
+                <div class="log-container" id="logContainer">
+                    <div class="log-entry log-info">🔍 Monitor de debugging iniciado...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="debug-section">
+            <div class="section-header">
+                <h3>🔬 Resultados Detallados</h3>
+                <button class="btn btn-secondary" onclick="exportResults()">📁 Exportar</button>
+            </div>
+            <div class="section-content">
+                <div class="json-viewer" id="detailedResults">
+                    <!-- Resultados detallados se muestran aquí -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let diagnosticResults = {};
+        let logCounter = 0;
+
+        function addLog(message, type = 'info') {
+            const container = document.getElementById('logContainer');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            container.appendChild(entry);
+            container.scrollTop = container.scrollHeight;
+            logCounter++;
+        }
+
+        function updateIndicator(elementId, status) {
+            const indicator = document.getElementById(elementId);
+            indicator.className = `status-indicator status-${status}`;
+        }
+
+        function updateProgress(percentage) {
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = `${percentage}%`;
+        }
+
+        async function checkApiStatus() {
+            addLog('🌐 Verificando estado de la API...', 'info');
+            updateIndicator('apiIndicator', 'loading');
+            
+            try {
+                const response = await fetch('/health');
+                if (response.ok) {
+                    const data = await response.json();
+                    updateIndicator('apiIndicator', 'success');
+                    document.getElementById('apiStatus').textContent = 'API funcionando correctamente';
+                    document.getElementById('apiDetails').innerHTML = `
+                        Versión: ${data.version}<br>
+                        OpenAI: ${data.openai_configured ? '✅' : '❌'}<br>
+                        Google Drive: ${data.google_drive_connected ? '✅' : '❌'}
+                    `;
+                    addLog('✅ API respondiendo correctamente', 'success');
+                    return data;
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                updateIndicator('apiIndicator', 'error');
+                document.getElementById('apiStatus').textContent = 'Error en API';
+                document.getElementById('apiDetails').textContent = error.message;
+                addLog(`❌ Error de API: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        async function checkProcesses() {
+            addLog('📊 Verificando carga de procesos...', 'info');
+            updateIndicator('processIndicator', 'loading');
+            
+            try {
+                const response = await fetch('/lista-procesos');
+                if (response.ok) {
+                    const data = await response.json();
+                    const totalProcesos = data.total_procesos || 0;
+                    
+                    if (totalProcesos > 0) {
+                        updateIndicator('processIndicator', 'success');
+                        document.getElementById('processStatus').textContent = `${totalProcesos} procesos encontrados`;
+                        addLog(`✅ Encontrados ${totalProcesos} procesos`, 'success');
+                    } else {
+                        updateIndicator('processIndicator', 'warning');
+                        document.getElementById('processStatus').textContent = 'No hay procesos';
+                        addLog('⚠️ No se encontraron procesos', 'warning');
+                    }
+                    
+                    // Mostrar logs de debugging si están disponibles
+                    if (data.debug_logs) {
+                        addLog('📋 Logs de carga de procesos:', 'info');
+                        data.debug_logs.forEach(log => {
+                            const type = log.includes('✅') ? 'success' : 
+                                       log.includes('❌') ? 'error' : 
+                                       log.includes('⚠️') ? 'warning' : 'info';
+                            addLog(log, type);
+                        });
+                    }
+                    
+                    document.getElementById('processDetails').innerHTML = `
+                        Total: ${totalProcesos}<br>
+                        Almacenamiento: ${data.estadisticas?.almacenamiento_principal || 'N/A'}<br>
+                        Última actualización: ${data.debug_timestamp ? new Date(data.debug_timestamp).toLocaleTimeString() : 'N/A'}
+                    `;
+                    
+                    return data;
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                updateIndicator('processIndicator', 'error');
+                document.getElementById('processStatus').textContent = 'Error cargando procesos';
+                document.getElementById('processDetails').textContent = error.message;
+                addLog(`❌ Error cargando procesos: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        async function runFullDiagnostics() {
+            addLog('🚀 Iniciando diagnósticos completos...', 'info');
+            updateProgress(0);
+            
+            // Limpiar resultados anteriores
+            diagnosticResults = {};
+            
+            // Test 1: API Status (25%)
+            addLog('1/4 Verificando API...', 'info');
+            diagnosticResults.api = await checkApiStatus();
+            updateProgress(25);
+            
+            // Test 2: Procesos (50%)
+            addLog('2/4 Verificando procesos...', 'info');
+            diagnosticResults.processes = await checkProcesses();
+            updateProgress(50);
+            
+            // Test 3: Google Drive (75%)
+            addLog('3/4 Verificando Google Drive...', 'info');
+            await checkGoogleDrive();
+            updateProgress(75);
+            
+            // Test 4: Finalización (100%)
+            addLog('4/4 Generando reporte...', 'info');
+            generateReport();
+            updateProgress(100);
+            
+            addLog('🎉 Diagnósticos completados', 'success');
+        }
+
+        async function checkGoogleDrive() {
+            updateIndicator('storageIndicator', 'loading');
+            
+            try {
+                const response = await fetch('/test-google-drive');
+                if (response.ok) {
+                    const data = await response.json();
+                    updateIndicator('storageIndicator', 'success');
+                    document.getElementById('storageStatus').textContent = 'Google Drive conectado';
+                    document.getElementById('storageDetails').innerHTML = `
+                        Estado: Conectado<br>
+                        Tipo: Google Drive<br>
+                        Cuota: ${data.quota_info ? 'Disponible' : 'N/A'}
+                    `;
+                    addLog('✅ Google Drive conectado correctamente', 'success');
+                    diagnosticResults.googleDrive = data;
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                updateIndicator('storageIndicator', 'warning');
+                document.getElementById('storageStatus').textContent = 'Google Drive no disponible';
+                document.getElementById('storageDetails').textContent = 'Usando almacenamiento local';
+                addLog(`⚠️ Google Drive no disponible: ${error.message}`, 'warning');
+                diagnosticResults.googleDrive = { error: error.message };
+            }
+        }
+
+        function generateReport() {
+            const report = {
+                timestamp: new Date().toISOString(),
+                summary: {
+                    api_working: !!diagnosticResults.api,
+                    processes_found: diagnosticResults.processes?.total_procesos || 0,
+                    google_drive_connected: !diagnosticResults.googleDrive?.error,
+                    overall_status: getOverallStatus()
+                },
+                detailed_results: diagnosticResults
+            };
+            
+            document.getElementById('detailedResults').textContent = JSON.stringify(report, null, 2);
+            
+            // Actualizar métricas
+            updateMetrics(report);
+        }
+
+        function getOverallStatus() {
+            const hasApi = !!diagnosticResults.api;
+            const hasProcesses = (diagnosticResults.processes?.total_procesos || 0) > 0;
+            const hasStorage = !diagnosticResults.googleDrive?.error;
+            
+            if (hasApi && hasProcesses && hasStorage) return 'excellent';
+            if (hasApi && (hasProcesses || hasStorage)) return 'good';
+            if (hasApi) return 'basic';
+            return 'critical';
+        }
+
+        function updateMetrics(report) {
+            const metricsGrid = document.getElementById('metricsGrid');
+            metricsGrid.innerHTML = `
+                <div class="metric-item">
+                    <div class="metric-value">${report.summary.processes_found}</div>
+                    <div class="metric-label">Procesos Encontrados</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value">${report.summary.api_working ? 'OK' : 'ERROR'}</div>
+                    <div class="metric-label">Estado API</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value">${report.summary.google_drive_connected ? 'ON' : 'OFF'}</div>
+                    <div class="metric-label">Google Drive</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value">${report.summary.overall_status.toUpperCase()}</div>
+                    <div class="metric-label">Estado General</div>
+                </div>
+            `;
+        }
+
+        function refreshMetrics() {
+            addLog('🔄 Actualizando métricas...', 'info');
+            runFullDiagnostics();
+        }
+
+        function clearLogs() {
+            document.getElementById('logContainer').innerHTML = '<div class="log-entry log-info">🔍 Logs limpiados...</div>';
+            logCounter = 0;
+        }
+
+        function exportResults() {
+            const results = {
+                timestamp: new Date().toISOString(),
+                diagnosticResults,
+                logCount: logCounter
+            };
+            
+            const blob = new Blob([JSON.stringify(results, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `robot-ai-debug-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            addLog('📁 Resultados exportados', 'success');
+        }
+
+        // Auto-inicializar al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            addLog('🔍 Debug Monitor cargado', 'success');
+            setTimeout(runFullDiagnostics, 1000);
+        });
+
+        // Auto-refresh cada 2 minutos
+        setInterval(runFullDiagnostics, 120000);
+    </script>
+</body>
+</html>

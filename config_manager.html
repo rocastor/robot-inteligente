@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 Configurador de Variables - Robot AI</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .variable-group {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-left: 5px solid #667eea;
+        }
+
+        .variable-group h3 {
+            margin-top: 0;
+            color: #333;
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .variable-input {
+            margin-bottom: 15px;
+        }
+
+        .variable-input label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .variable-input input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .variable-input input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .variable-input input[type="password"] {
+            font-family: monospace;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-left: 10px;
+        }
+
+        .status-ok { background: #28a745; }
+        .status-error { background: #dc3545; }
+        .status-warning { background: #ffc107; }
+
+        .current-status {
+            background: #e3f2fd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .current-status h3 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 Configurador de Variables</h1>
+            <p>Configura las claves necesarias para el funcionamiento del Robot AI</p>
+        </div>
+
+        <div class="content">
+            <!-- Estado actual -->
+            <div class="current-status">
+                <h3>📊 Estado Actual del Sistema</h3>
+                <div class="status-item">
+                    <span>🤖 OpenAI API</span>
+                    <span id="status-openai">
+                        <span class="status-indicator status-warning"></span>
+                        Verificando...
+                    </span>
+                </div>
+                <div class="status-item">
+                    <span>☁️ AWS S3</span>
+                    <span id="status-aws">
+                        <span class="status-indicator status-warning"></span>
+                        Verificando...
+                    </span>
+                </div>
+                <div class="status-item">
+                    <span>🔐 Autenticación</span>
+                    <span id="status-auth">
+                        <span class="status-indicator status-warning"></span>
+                        Verificando...
+                    </span>
+                </div>
+                <div class="status-item">
+                    <span>🌐 API Status</span>
+                    <span id="status-api">
+                        <span class="status-indicator status-warning"></span>
+                        Verificando...
+                    </span>
+                </div>
+            </div>
+
+            <!-- Alertas -->
+            <div id="alert-success" class="alert alert-success">
+                <strong>✅ Éxito:</strong> <span id="success-message"></span>
+            </div>
+            <div id="alert-error" class="alert alert-error">
+                <strong>❌ Error:</strong> <span id="error-message"></span>
+            </div>
+
+            <!-- Loading -->
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Guardando configuración...</p>
+            </div>
+
+            <!-- Formulario de configuración -->
+            <form id="config-form">
+                <!-- OpenAI Configuration -->
+                <div class="variable-group">
+                    <h3>🤖 Configuración OpenAI</h3>
+                    <div class="variable-input">
+                        <label for="openai_api_key">OPENAI_API_KEY</label>
+                        <input type="password" id="openai_api_key" name="openai_api_key" placeholder="sk-...">
+                        <div class="help-text">Tu API Key de OpenAI para análisis de documentos con IA</div>
+                    </div>
+                </div>
+
+                <!-- AWS Configuration -->
+                <div class="variable-group">
+                    <h3>☁️ Configuración AWS S3</h3>
+                    <div class="variable-input">
+                        <label for="aws_access_key_id">AWS_ACCESS_KEY_ID</label>
+                        <input type="password" id="aws_access_key_id" name="aws_access_key_id" placeholder="AKIA...">
+                        <div class="help-text">Tu Access Key ID de AWS para subir archivos a S3</div>
+                    </div>
+                    <div class="variable-input">
+                        <label for="aws_secret_access_key">AWS_SECRET_ACCESS_KEY</label>
+                        <input type="password" id="aws_secret_access_key" name="aws_secret_access_key" placeholder="...">
+                        <div class="help-text">Tu Secret Access Key de AWS</div>
+                    </div>
+                    <div class="variable-input">
+                        <label for="aws_default_region">AWS_DEFAULT_REGION</label>
+                        <input type="text" id="aws_default_region" name="aws_default_region" placeholder="us-east-1" value="us-east-1">
+                        <div class="help-text">Región de AWS donde está tu bucket S3</div>
+                    </div>
+                    <div class="variable-input">
+                        <label for="aws_bucket_name">AWS_BUCKET_NAME</label>
+                        <input type="text" id="aws_bucket_name" name="aws_bucket_name" placeholder="mi-bucket-rocastor" value="rocastor-resultados">
+                        <div class="help-text">Nombre de tu bucket S3 para almacenar resultados</div>
+                    </div>
+                </div>
+
+                <!-- Google Drive Configuration (Principal) -->
+                <div class="variable-group priority">
+                    <h3>🚀 Configuración Google Drive (OBLIGATORIO)</h3>
+                    <div class="variable-input">
+                        <p><strong>📢 IMPORTANTE: Google Drive es ahora el almacenamiento principal de Robot AI</strong></p>
+                        <p><strong>🎉 Ventajas de Google Drive:</strong></p>
+                        <ul>
+                            <li>✅ 15 GB gratuitos (3x más que S3)</li>
+                            <li>✅ Sin costos por transferencia de datos</li>
+                            <li>✅ Fácil compartir resultados con enlaces</li>
+                            <li>✅ Integración nativa con Google Apps</li>
+                            <li>✅ Acceso desde cualquier dispositivo</li>
+                            <li>✅ Más económico para el usuario</li>
+                        </ul>
+                    </div>
+                    <div class="variable-input">
+                        <label for="googleCredentials">🔑 Google Credentials (JSON) - REQUERIDO:</label>
+                        <textarea id="googleCredentials" name="GOOGLE_CREDENTIALS" rows="8" 
+                            placeholder='{"type": "service_account", "project_id": "...", "private_key_id": "...", "private_key": "...", "client_email": "...", "client_id": "...", "auth_uri": "...", "token_uri": "...", "auth_provider_x509_cert_url": "..."}'
+                            required style="border: 2px solid #4CAF50;"></textarea>
+                        <div class="help-text" style="color: #4CAF50; font-weight: bold;">
+                            ⚠️ Robot AI requiere Google Drive para funcionar. Pega aquí el contenido completo del archivo JSON de credenciales.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AWS S3 Configuration (Opcional/Deshabilitado) -->
+                <div class="variable-group" style="opacity: 0.6;">
+                    <h3>☁️ Configuración AWS S3 (DESHABILITADO)</h3>
+                    <div class="variable-input">
+                        <p style="color: #f44336;"><strong>⚠️ NOTA: AWS S3 está deshabilitado en favor de Google Drive</strong></p>
+                        <p>Google Drive ofrece más espacio gratuito y es más económico para los usuarios.</p>
+                    </div>
+                </div>
+
+                <!-- Authentication Configuration -->
+                <div class="variable-group">
+                    <h3>🔐 Configuración de Autenticación</h3>9_cert_url": "...", "client_x509_cert_url": "..."}'></textarea>
+                        <div class="help-text">
+                            📖 <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Obtener credenciales aquí</a>
+                            <br>1. Crear Service Account
+                            <br>2. Habilitar Google Drive API
+                            <br>3. Descargar JSON de credenciales
+                        </div>
+                    </div>
+                </div>
+
+                <div class="variable-group">
+                    <h3>🔐 Configuración de Autenticación</h3>
+                    <div class="variable-input">
+                        <label for="admin_username">ADMIN_USERNAME</label>
+                        <input type="text" id="admin_username" name="admin_username" placeholder="rocastor_admin" value="rocastor_admin">
+                        <div class="help-text">Usuario administrador para acceder al robot</div>
+                    </div>
+                    <div class="variable-input">
+                        <label for="admin_password">ADMIN_PASSWORD</label>
+                        <input type="password" id="admin_password" name="admin_password" placeholder="Tu contraseña segura">
+                        <div class="help-text">Contraseña segura para el acceso administrativo</div>
+                    </div>
+                </div>
+
+                <!-- Botones de acción -->
+                <div style="text-align: center; margin-top: 30px;">
+                    <button type="button" id="test-config" class="btn btn-warning">🧪 Probar Configuración</button>
+                    <button type="submit" class="btn btn-success">💾 Guardar Variables</button>
+                    <button type="button" id="load-current" class="btn">📥 Cargar Actuales</button>
+                </div>
+            </form>
+
+            <!-- Guía de migración -->
+            <div class="variable-group" style="margin-top: 40px;">
+                <h3>🚀 Guía de Migración</h3>
+                <p><strong>Para migrar a cualquier plataforma:</strong></p>
+                <ol>
+                    <li>Configura aquí todas las variables necesarias</li>
+                    <li>Descarga el archivo <code>.env</code> generado</li>
+                    <li>Sube el archivo <code>.env</code> a tu nueva plataforma</li>
+                    <li>O configura las variables directamente en el panel de tu hosting</li>
+                </ol>
+                <button type="button" id="download-env" class="btn">📁 Descargar .env</button>
+                <button type="button" id="show-instructions" class="btn">📖 Instrucciones Detalladas</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Verificar estado del sistema al cargar
+        async function checkSystemStatus() {
+            try {
+                const response = await fetch('/health');
+                const data = await response.json();
+
+                // OpenAI Status
+                const openaiEl = document.getElementById('status-openai');
+                if (data.openai_configured) {
+                    openaiEl.innerHTML = '<span class="status-indicator status-ok"></span> Configurado';
+                } else {
+                    openaiEl.innerHTML = '<span class="status-indicator status-error"></span> No configurado';
+                }
+
+                // AWS Status
+                const awsEl = document.getElementById('status-aws');
+                if (data.aws_s3_configured) {
+                    awsEl.innerHTML = '<span class="status-indicator status-ok"></span> Configurado';
+                } else {
+                    awsEl.innerHTML = '<span class="status-indicator status-error"></span> No configurado';
+                }
+
+                // Auth Status
+                const authEl = document.getElementById('status-auth');
+                authEl.innerHTML = '<span class="status-indicator status-ok"></span> Configurado';
+
+                // API Status
+                const apiEl = document.getElementById('status-api');
+                if (data.status === 'ok') {
+                    apiEl.innerHTML = '<span class="status-indicator status-ok"></span> Online';
+                } else {
+                    apiEl.innerHTML = '<span class="status-indicator status-error"></span> Error';
+                }
+
+            } catch (error) {
+                console.error('Error checking status:', error);
+            }
+        }
+
+        // Guardar configuración
+        document.getElementById('config-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const loading = document.getElementById('loading');
+            const successAlert = document.getElementById('alert-success');
+            const errorAlert = document.getElementById('alert-error');
+
+            // Mostrar loading
+            loading.style.display = 'block';
+            successAlert.style.display = 'none';
+            errorAlert.style.display = 'none';
+
+            // Recopilar datos del formulario
+            const formData = new FormData(e.target);
+            const config = {};
+
+            for (let [key, value] of formData.entries()) {
+                if (value.trim()) {
+                    config[key.toUpperCase()] = value.trim();
+                }
+            }
+
+            try {
+                const response = await fetch('/guardar-variables-entorno', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(config)
+                });
+
+                const result = await response.json();
+
+                loading.style.display = 'none';
+
+                if (response.ok) {
+                    document.getElementById('success-message').textContent = result.message || 'Variables guardadas correctamente';
+                    successAlert.style.display = 'block';
+                    // Verificar estado nuevamente
+                    setTimeout(checkSystemStatus, 1000);
+                } else {
+                    document.getElementById('error-message').textContent = result.detail || 'Error guardando variables';
+                    errorAlert.style.display = 'block';
+                }
+
+            } catch (error) {
+                loading.style.display = 'none';
+                document.getElementById('error-message').textContent = 'Error de conexión: ' + error.message;
+                errorAlert.style.display = 'block';
+            }
+        });
+
+        // Probar configuración
+        document.getElementById('test-config').addEventListener('click', async () => {
+            const loading = document.getElementById('loading');
+            const successAlert = document.getElementById('alert-success');
+            const errorAlert = document.getElementById('alert-error');
+
+            loading.style.display = 'block';
+            successAlert.style.display = 'none';
+            errorAlert.style.display = 'none';
+
+            try {
+                const response = await fetch('/probar-configuracion', {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+                loading.style.display = 'none';
+
+                if (response.ok) {
+                    document.getElementById('success-message').textContent = `Prueba exitosa: ${result.message}`;
+                    successAlert.style.display = 'block';
+                } else {
+                    document.getElementById('error-message').textContent = result.detail || 'Error en la prueba';
+                    errorAlert.style.display = 'block';
+                }
+
+            } catch (error) {
+                loading.style.display = 'none';
+                document.getElementById('error-message').textContent = 'Error probando configuración: ' + error.message;
+                errorAlert.style.display = 'block';
+            }
+        });
+
+        // Descargar archivo .env
+        document.getElementById('download-env').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/descargar-env');
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = '.env';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                } else {
+                    alert('Error descargando archivo .env');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+
+        // Mostrar instrucciones
+        document.getElementById('show-instructions').addEventListener('click', () => {
+            const instructions = `
+📋 INSTRUCCIONES DE MIGRACIÓN DETALLADAS
+
+🔧 OPCIÓN 1: Variables de Sistema (Recomendado)
+1. En tu plataforma de hosting (AWS, Heroku, Vercel, etc.):
+   - Ve al panel de variables de entorno
+   - Agrega cada variable con su valor correspondiente:
+     * OPENAI_API_KEY=tu_api_key_aqui
+     * AWS_ACCESS_KEY_ID=tu_access_key
+     * AWS_SECRET_ACCESS_KEY=tu_secret_key
+     * AWS_DEFAULT_REGION=us-east-1
+     * AWS_BUCKET_NAME=tu-bucket
+     * ADMIN_USERNAME=tu_usuario
+     * ADMIN_PASSWORD=tu_contraseña
+
+📁 OPCIÓN 2: Archivo .env
+1. Descarga el archivo .env desde este configurador
+2. Súbelo a la raíz de tu proyecto en la nueva plataforma
+3. Asegúrate de que esté en el .gitignore
+
+🚀 OPCIÓN 3: AWS Específico
+1. Para AWS Elastic Beanstalk:
+   - Configuration → Software → Environment Properties
+2. Para AWS Lambda:
+   - Configuration → Environment Variables
+3. Para AWS ECS:
+   - Task Definition → Environment Variables
+
+✅ VERIFICACIÓN POST-MIGRACIÓN
+1. Accede a tu-dominio.com/health
+2. Verifica que todas las configuraciones aparezcan como "ok"
+3. Prueba subir un documento en tu-dominio.com/
+
+🔐 SEGURIDAD
+- Nunca commits archivos .env al repositorio
+- Usa variables de entorno del sistema cuando sea posible
+- Rota tus API keys periódicamente
+            `;
+            alert(instructions);
+        });
+
+        // Verificar estado al cargar la página
+        document.addEventListener('DOMContentLoaded', checkSystemStatus);
+    </script>
+</body>
+</html>

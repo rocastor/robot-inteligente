@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 Robot AI - Dashboard Principal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: auto;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-left: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-connected { background-color: #10b981; }
+        .status-warning { background-color: #f59e0b; }
+        .status-error { background-color: #ef4444; }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #fbbf24, #7dd3fc, #86efac, #f87171);
+            opacity: 0.8;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            margin-right: 15px;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        .card-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 15px 0;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .metric:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        .metric-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fbbf24;
+        }
+
+        .metric-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .status-success { background: #10b981; color: white; }
+        .status-warning { background: #f59e0b; color: white; }
+        .status-error { background: #ef4444; color: white; }
+        .status-info { background: #3b82f6; color: white; }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-primary { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .btn-success { background: linear-gradient(135deg, #10b981, #047857); }
+        .btn-warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            opacity: 0.7;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fbbf24;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .recent-processes {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: 20px;
+        }
+
+        .recent-processes h3 {
+            margin-bottom: 20px;
+            color: #fbbf24;
+        }
+
+        .process-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #fbbf24;
+        }
+
+        .process-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .process-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .process-details {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fecaca;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #ef4444;
+            margin: 10px 0;
+        }
+
+        .navigation {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .success-message {
+            background: rgba(16, 185, 129, 0.2);
+            color: #6ee7b7;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #10b981;
+            margin: 10px 0;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+
+        .error {
+            color: #ff6b6b;
+            font-weight: 500;
+        }
+
+        .error-display {
+            text-align: center;
+            padding: 10px;
+        }
+
+        .error-detail {
+            display: block;
+            color: #999;
+            font-size: 0.8em;
+            margin-top: 5px;
+        }
+
+        .retry-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .retry-btn:hover {
+            background: #0056b3;
+        }
+
+        .process-summary {
+            margin-bottom: 8px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .drive-source {
+            color: #4285f4;
+        }
+
+        .local-source {
+            color: #ffa726;
+        }
+
+        .loading-icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .proceso-estado {
+            font-size: 0.8em;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-top: 4px;
+            display: inline-block;
+        }
+
+        .estado-completo {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .estado-problemas {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .estado-fallido {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="/" class="nav-btn">🏠 Inicio</a>
+        <a href="/panel-filtros" class="nav-btn">📊 Filtros</a>
+        <a href="/documentos-rocastor" class="nav-btn">📄 Rocastor</a>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Robot AI - Dashboard Principal</h1>
+            <p>Monitoreo en tiempo real del sistema de análisis inteligente
+                <span id="connectionStatus" class="status-indicator status-warning"></span>
+            </p>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="loading-spinner"></div>
+            Cargando información del sistema...
+        </div>
+
+        <div id="errorContainer" style="display: none;"></div>
+
+        <div id="dashboardContent" style="display: none;">
+            <!-- Estado del Sistema -->
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">⚡</div>
+                        <div>
+                            <div class="card-title">Estado del Sistema Robot AI</div>
+                            <div class="card-subtitle">Verificación de componentes y servicios</div>
+                        </div>
+                    </div>
+
+                    <div class="metric">
+                        <span class="metric-label">API Status:</span>
+                        <span id="apiStatus" class="metric-status status-warning">Verificando...</span>
+                    </div>
+
+                    <div class="metric">
+                        <span class="metric-label">OpenAI:</span>
+                        <span id="openaiStatus" class="metric-status status-warning">-</span>
+                    </div>
+
+                    <div class="metric">
+                        <span class="metric-label">Google Drive:</span>
+                        <span id="googleDriveStatus" class="metric-status status-warning">-</span>
+                    </div>
+
+                    <div class="metric">
+                        <span class="metric-label">Almacenamiento:</span>
+                        <span id="storageStatus" class="metric-status status-warning">-</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Última actualización:</span>
+                        <span id="lastUpdate" class="metric-value">-</span>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-success" onclick="verificarSistema()">🔄 Verificar</button>
+                        <button class="btn btn-primary" onclick="abrirMonitor()">📊 Monitor</button>
+                    </div>
+                </div>
+
+                <!-- Procesos Analizados -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">📊</div>
+                        <div>
+                            <div class="card-title">Procesos Analizados</div>
+                            <div class="card-subtitle">Estadísticas generales</div>
+                        </div>
+                    </div>
+
+                    <div class="metric">
+                        <span class="metric-label">📊 Total de Documentos Procesados:</span>
+                        <span id="totalProcesos" class="metric-value">0</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">✅ Documentos Analizados Completamente:</span>
+                        <span id="procesosRevisados" class="metric-value">0</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">🎯 Documentos con Información Útil:</span>
+                        <span id="procesosValidos" class="metric-value">0</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">📈 Porcentaje de Éxito del Sistema:</span>
+                        <span id="eficienciaPromedio" class="metric-value">0%</span>
+                    </div>
+
+                    <div class="action-buttons">
+                        <a href="/panel-filtros" class="btn btn-primary">📋 Ver Detalles</a>
+                        <button class="btn btn-warning" onclick="exportarDatos()">📤 Exportar</button>
+                    </div>
+                </div>
+
+                <!-- Análisis Financiero -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">💰</div>
+                        <div>
+                            <div class="card-title">💰 Costos de Inteligencia Artificial</div>
+                            <div class="card-subtitle">Inversión en análisis automático de documentos</div>
+                        </div>
+                    </div>
+
+                    <div class="metric">
+                        <span class="metric-label">💰 Inversión Total en Análisis de IA:</span>
+                        <span id="costoTotal" class="metric-value">$0 COP</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">🔢 Tokens de IA Procesados:</span>
+                        <span id="tokensUsados" class="metric-value">0</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">📄 Costo Promedio por Documento:</span>
+                        <span id="costoProceso" class="metric-value">$0 COP</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">❓ Costo Promedio por Pregunta:</span>
+                        <span id="costoPregunta" class="metric-value">$0 COP</span>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-success" onclick="actualizarCostos()">💹 Detalles</button>
+                        <button class="btn btn-warning" onclick="generarReporteROI()">📊 ROI</button>
+                    </div>
+                </div>
+
+                <!-- Documentos Rocastor -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">📁</div>
+                        <div>
+                            <div class="card-title">📋 Sistema de Reportes Rocastor</div>
+                            <div class="card-subtitle">Documentación y plantillas personalizadas</div>
+                        </div>
+                    </div>
+
+                    <div class="metric">
+                        <span class="metric-label">📑 Reportes PDF Generados:</span>
+                        <span id="pdfsGuardados" class="metric-value">0</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">📋 Plantillas de Uso General:</span>
+                        <span id="plantillasGenerales" class="metric-value">0</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">🎯 Plantillas Personalizadas:</span>
+                        <span id="plantillasEspecificas" class="metric-value">0</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">📂 Procesos con Documentación:</span>
+                        <span id="procesosDocumentados" class="metric-value">0</span>
+                    </div>
+
+                    <div class="action-buttons">
+                        <a href="/documentos-rocastor" class="btn btn-primary">📄 Gestionar</a>
+                        <button class="btn btn-warning" onclick="generarAlerta()">🔔 Alertas</button>
+                    </div>
+                </div>
+
+                <!-- Almacenamiento -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">☁️</div>
+                        <div>
+                            <div class="card-title">☁️ Google Drive - Almacenamiento</div>
+                            <div class="card-subtitle">Respaldo automático y sincronización</div>
+                        </div>
+                    </div>
+
+                    <div class="metric">
+                        <span class="metric-label">☁️ Archivos Guardados en la Nube:</span>
+                        <span id="archivosGoogleDrive" class="metric-value">0</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">💾 Espacio Utilizado en Google Drive:</span>
+                        <span id="tamanoTotal" class="metric-value">0 MB</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">📅 Última Sincronización:</span>
+                        <span id="ultimoBackup" class="metric-value">-</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">🔧 Estado de Conexión a la Nube:</span>
+                        <span id="estadoOperacion" class="metric-status status-warning">-</span>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-success" onclick="verificarAlmacenamiento()">☁️ Ver Google Drive</button>
+                        <button class="btn btn-primary" onclick="probarConexion()">🔧 Probar</button>
+                    </div>
+                </div>
+
+                <!-- Actividad Reciente -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">📋</div>
+                        <div>
+                            <div class="card-title">Actividad Reciente</div>
+                            <div class="card-subtitle">Últimas acciones del sistema</div>
+                        </div>
+                    </div>
+
+                    <div class="metric">
+                        <span class="metric-label">Cargando actividad reciente...</span>
+                        <span class="metric-status status-info">⏳</span>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="actualizarActividad()">🔄 Actualizar</button>
+                        <button class="btn btn-warning" onclick="limpiarLogs()">🧹 Limpiar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Procesos Recientes -->
+            <div class="recent-processes">
+                <h3>📊 Últimos Procesos Analizados</h3>
+                <div  id="ultimosProcesos">
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        Cargando procesos recientes...
+                    </div>
+                </div>
+            </div>
+
+             <!-- Contenedor para la lista de procesos -->
+             <div class="recent-processes">
+                <h3>📋 Lista de Procesos</h3>
+                <div id="processesContainer">
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        Cargando procesos...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let systemData = {};
+        let processesData = [];
+
+        // Cargar datos al inicializar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Iniciando Dashboard...');
+            cargarDatosSistema();
+        });
+
+        async function cargarDatosSistema() {
+            try {
+                console.log('🔄 Iniciando carga de datos del sistema...');
+
+                // Cargar datos de salud del sistema
+                const healthResponse = await fetch('/health');
+                if (!healthResponse.ok) {
+                    throw new Error(`Error health: ${healthResponse.status}`);
+                }
+                const healthData = await healthResponse.json();
+                console.log('✅ Health data cargado:', healthData);
+
+                // Cargar lista de procesos con manejo robusto de errores
+                let processesData = { 
+                    success: false, 
+                    procesos: [], 
+                    total: 0,
+                    total_procesos: 0, 
+                    error: "No disponible",
+                    estadisticas: {
+                        procesos_validos: 0,
+                        total_costo_usd: 0,
+                        total_tokens: 0
+                    }
+                };
+
+                try {
+                    console.log('📋 Solicitando lista de procesos...');
+                    const processesResponse = await fetch('/lista-procesos');
+                    console.log('📋 Respuesta procesos status:', processesResponse.status);
+
+                    if (processesResponse.status === 200) {
+                        const responseData = await processesResponse.json();
+                        console.log('📋 Datos de procesos recibidos:', responseData);
+
+                        // Procesar respuesta exitosa o con errores parciales
+                        processesData = {
+                            success: responseData.success !== false,
+                            procesos: Array.isArray(responseData.procesos) ? responseData.procesos : [],
+                            total: responseData.total || 0,
+                            total_procesos: responseData.total_procesos || responseData.total || 0,
+                            fuentes: responseData.fuentes || { local: 0, google_drive: 0 },
+                            estadisticas: responseData.estadisticas || {
+                                procesos_validos: 0,
+                                total_costo_usd: 0,
+                                total_tokens: 0,
+                                google_drive_procesos: 0,
+                                local_procesos: 0
+                            },
+                            mensaje: responseData.mensaje || 'Datos cargados',
+                            almacenamiento_principal: responseData.almacenamiento_principal || 'LOCAL',
+                            errores_procesamiento: responseData.errores_procesamiento || []
+                        };
+
+                        if (responseData.errores_procesamiento && responseData.errores_procesamiento.length > 0) {
+                            console.warn('⚠️ Errores durante procesamiento:', responseData.errores_procesamiento);
+                        }
+
+                        console.log('✅ Datos de procesos procesados correctamente');
+                    } else {
+                        console.warn('⚠️ Error HTTP en /lista-procesos:', processesResponse.status);
+                        try {
+                            const errorData = await processesResponse.json();
+                            processesData.error = errorData.detail || `Error ${processesResponse.status}`;
+                        } catch {
+                            const errorText = await processesResponse.text();
+                            processesData.error = `Error ${processesResponse.status}: ${errorText}`;
+                        }
+                    }
+                } catch (processError) {
+                    console.error('❌ Error cargando procesos:', processError);
+                    processesData.error = processError.message;
+                }
+
+                systemData = {
+                    health: healthData,
+                    processes: processesData
+                };
+
+                console.log('✅ Datos del sistema cargados:', systemData);
+
+                // Mostrar/ocultar elementos
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('dashboardContent').style.display = 'block';
+
+                // Actualizar UI
+                actualizarEstadoSistema();
+                actualizarEstadisticasProcesos();
+                actualizarAnalisisFinanciero();
+                actualizarDocumentosRocastor();
+                actualizarAlmacenamiento();
+                mostrarProcesosRecientes();
+
+                // Cargar datos adicionales
+                await cargarDatosAdicionales();
+
+            } catch (error) {
+                console.error('❌ Error cargando datos:', error);
+                document.getElementById('loading').style.display = 'none';
+                mostrarError('Error cargando datos del sistema: ' + error.message);
+            }
+        }
+
+        function actualizarInterfaz() {
+            // Actualizar estado del sistema
+            actualizarEstadoSistema();
+
+            // Actualizar estadísticas de procesos
+            actualizarEstadisticasProcesos();
+
+            // Actualizar análisis financiero
+            actualizarAnalisisFinanciero();
+
+            // Actualizar documentos Rocastor
+            actualizarDocumentosRocastor();
+
+            // Actualizar almacenamiento
+            actualizarAlmacenamiento();
+
+            // Mostrar procesos recientes
+            mostrarProcesosRecientes();
+        }
+
+        function actualizarEstadoSistema() {
+            console.log('⚡ Actualizando estado del sistema...');
+            const health = systemData.health;
+
+            if (health) {
+                // Estado de API
+                if (health.status === 'ok') {
+                    document.getElementById('apiStatus').textContent = 'Funcionando';
+                    document.getElementById('apiStatus').className = 'metric-status status-success';
+                } else {
+                    document.getElementById('apiStatus').textContent = 'Error';
+                    document.getElementById('apiStatus').className = 'metric-status status-error';
+                }
+
+                // OpenAI configurado
+                if (health.openai_configured) {
+                    document.getElementById('openaiStatus').textContent = 'Configurado';
+                    document.getElementById('openaiStatus').className = 'metric-status status-success';
+                } else {
+                    document.getElementById('openaiStatus').textContent = 'No configurado';
+                    document.getElementById('openaiStatus').className = 'metric-status status-warning';
+                }
+
+                // Google Drive conectado
+                if (health.google_drive_connected) {
+                    document.getElementById('googleDriveStatus').textContent = 'Conectado';
+                    document.getElementById('googleDriveStatus').className = 'metric-status status-success';
+                } else {
+                    document.getElementById('googleDriveStatus').textContent = 'Desconectado';
+                    document.getElementById('googleDriveStatus').className = 'metric-status status-error';
+                }
+
+                // Almacenamiento principal
+                const almacenamiento = health.almacenamiento_principal || 'LOCAL';
+                document.getElementById('storageStatus').textContent = almacenamiento;
+                if (almacenamiento === 'GOOGLE_DRIVE') {
+                    document.getElementById('storageStatus').className = 'metric-status status-success';
+                } else {
+                    document.getElementById('storageStatus').className = 'metric-status status-warning';
+                }
+
+                // Última actualización
+                const lastUpdate = new Date(health.timestamp).toLocaleTimeString('es-ES');
+                document.getElementById('lastUpdate').textContent = lastUpdate;
+            }
+        }
+
+       function actualizarEstadisticasProcesos() {
+            console.log('📊 Actualizando estadísticas de procesos...');
+            const processes = systemData.processes;
+
+            if (processes && processes.procesos && Array.isArray(processes.procesos)) {
+                const procesosArray = processes.procesos || [];
+
+                console.log('📊 Procesando datos de procesos:', {
+                    totalProcesos: procesosArray.length,
+                    procesosArray: procesosArray
+                });
+
+                // Calcular estadísticas reales de los datos
+                let procesosConAnalisis = 0;
+                let procesosExitosos = 0;
+                let totalRespuestasEncontradas = 0;
+                let totalPreguntasAnalizadas = 0;
+
+                procesosArray.forEach(proceso => {
+                    console.log('📋 Procesando:', proceso.nombre_proceso);
+
+                    // Verificar si tiene análisis completo
+                    if (proceso.analisis_completo && Array.isArray(proceso.analisis_completo)) {
+                        procesosConAnalisis++;
+
+                        // Contar respuestas exitosas
+                        const respuestasExitosas = proceso.analisis_completo.filter(item => 
+                            item.informacion_encontrada === true
+                        ).length;
+
+                        if (respuestasExitosas > 0) {
+                            procesosExitosos++;
+                        }
+
+                        totalRespuestasEncontradas += respuestasExitosas;
+                        totalPreguntasAnalizadas += proceso.analisis_completo.length;
+
+                        console.log(`   ✅ ${respuestasExitosas}/${proceso.analisis_completo.length} respuestas exitosas`);
+                    }
+                });
+
+                const eficienciaCalculada = totalPreguntasAnalizadas > 0 ? 
+                    Math.round((totalRespuestasEncontradas / totalPreguntasAnalizadas) * 100) : 0;
+
+                // Actualizar valores en la interfaz con datos reales
+                document.getElementById('totalProcesos').textContent = procesosArray.length;
+                document.getElementById('procesosRevisados').textContent = procesosConAnalisis;
+                document.getElementById('procesosValidos').textContent = procesosExitosos;
+                document.getElementById('eficienciaPromedio').textContent = eficienciaCalculada + '%';
+
+                console.log('📊 Estadísticas calculadas:', {
+                    total: procesosArray.length,
+                    conAnalisis: procesosConAnalisis,
+                    exitosos: procesosExitosos,
+                    eficiencia: eficienciaCalculada,
+                    respuestasEncontradas: totalRespuestasEncontradas,
+                    preguntasTotales: totalPreguntasAnalizadas
+                });
+
+                // Actualizar también la lista de procesos
+                mostrarProcesosRecientes();
+            } else {
+                console.warn('⚠️ No hay datos de procesos válidos:', processes);
+
+                // Valores por defecto
+                document.getElementById('totalProcesos').textContent = '0';
+                document.getElementById('procesosRevisados').textContent = '0';
+                document.getElementById('procesosValidos').textContent = '0';
+                document.getElementById('eficienciaPromedio').textContent = '0%';
+            }
+        }
+
+        function actualizarAnalisisFinanciero() {
+            console.log('💰 Actualizando análisis financiero...');
+            const processes = systemData.processes;
+
+            // Tasa de cambio USD a COP (actualizable)
+            const TASA_CAMBIO_USD_COP = 4200; // Aproximadamente 4,200 pesos por dólar
+
+            if (processes && processes.procesos && Array.isArray(processes.procesos)) {
+                let costoTotalUSD = 0;
+                let tokensTotal = 0;
+                let procesosConCosto = 0;
+
+                // Calcular costos reales de los procesos
+                processes.procesos.forEach(proceso => {
+                    console.log('💰 Analizando costos de:', proceso.nombre_proceso);
+
+                    // Buscar costos en diferentes campos posibles
+                    let costoProcesoUSD = 0;
+
+                    if (proceso.costo_openai_usd && proceso.costo_openai_usd > 0) {
+                        costoProcesoUSD = proceso.costo_openai_usd;
+                    } else if (proceso.analisis_completo && Array.isArray(proceso.analisis_completo)) {
+                        // Sumar costos de cada análisis individual
+                        proceso.analisis_completo.forEach(analisis => {
+                            if (analisis.metricas_openai && analisis.metricas_openai.costo_estimado) {
+                                costoProcesoUSD += analisis.metricas_openai.costo_estimado;
+                            }
+                        });
+                    }
+
+                    if (costoProcesoUSD > 0) {
+                        costoTotalUSD += costoProcesoUSD;
+                        procesosConCosto++;
+                        console.log(`   💰 Costo: $${costoProcesoUSD.toFixed(4)} USD`);
+                    }
+
+                    // Contar tokens
+                    if (proceso.tokens_usados) {
+                        tokensTotal += proceso.tokens_usados;
+                    } else if (proceso.analisis_completo && Array.isArray(proceso.analisis_completo)) {
+                        proceso.analisis_completo.forEach(analisis => {
+                            if (analisis.metricas_openai && analisis.metricasopenai && analisis.metricas_openai.tokens_usados) {
+                                tokensTotal += analisis.metricas_openai.tokens_usados;
+                            }
+                        });
+                    }
+                });
+
+                // Convertir a pesos colombianos
+                const costoTotalCOP = costoTotalUSD * TASA_CAMBIO_USD_COP;
+                const totalProcesos = processes.procesos.length;
+                const costoPorProcesoCOP = totalProcesos > 0 ? costoTotalCOP / totalProcesos : 0;
+
+                // Calcular preguntas totales
+                let preguntasTotales = 0;
+                processes.procesos.forEach(proceso => {
+                    if (proceso.analisis_completo && Array.isArray(proceso.analisis_completo)) {
+                        preguntasTotales += proceso.analisis_completo.length;
+                    } else {
+                        preguntasTotales += 10; // fallback
+                    }
+                });
+
+                const costoPorPreguntaCOP = preguntasTotales > 0 ? costoTotalCOP / preguntasTotales : 0;
+
+                // Actualizar interfaz con pesos colombianos
+                document.getElementById('costoTotal').textContent = 
+                    `$${costoTotalCOP.toLocaleString('es-CO', {minimumFractionDigits: 0, maximumFractionDigits: 0})} COP`;
+                document.getElementById('tokensUsados').textContent = tokensTotal.toLocaleString('es-CO');
+                document.getElementById('costoProceso').textContent = 
+                    `$${costoPorProcesoCOP.toLocaleString('es-CO', {minimumFractionDigits: 0, maximumFractionDigits: 0})} COP`;
+                document.getElementById('costoPregunta').textContent = 
+                    `$${costoPorPreguntaCOP.toLocaleString('es-CO', {minimumFractionDigits: 0, maximumFractionDigits: 0})} COP`;
+
+                console.log('💰 Análisis financiero actualizado:', {
+                    costoTotalUSD: costoTotalUSD.toFixed(4),
+                    costoTotalCOP: costoTotalCOP.toFixed(0),
+                    tokensTotal,
+                    costoPorProcesoCOP: costoPorProcesoCOP.toFixed(0),
+                    costoPorPreguntaCOP: costoPorPreguntaCOP.toFixed(0),
+                    totalProcesos,
+                    preguntasTotales,
+                    procesosConCosto
+                });
+            } else {
+                console.warn('⚠️ No hay datos para análisis financiero');
+                // Valores por defecto
+                document.getElementById('costoTotal').textContent = '$0 COP';
+                document.getElementById('tokensUsados').textContent = '0';
+                document.getElementById('costoProceso').textContent = '$0 COP';
+                document.getElementById('costoPregunta').textContent = '$0 COP';
+            }
+        }
+
+        async function actualizarDocumentosRocastor() {
+            try {
+                console.log('📄 Cargando datos de Rocastor...');
+
+                // Cargar datos de Rocastor
+                const rocastorResponse = await fetch('/cargar-pdfs-rocastor');
+                if (rocastorResponse.ok) {
+                    const rocastorData = await rocastorResponse.json();
+                    console.log('📄 Datos Rocastor:', rocastorData);
+
+                    // Usar datos del dashboard_stats si están disponibles
+                    const stats = rocastorData.dashboard_stats || {};
+
+                    document.getElementById('pdfsGuardados').textContent = stats.total_pdfs || rocastorData.total || 0;
+                    document.getElementById('plantillasGenerales').textContent = rocastorData.plantillas_generales || 0;
+                    document.getElementById('plantillasEspecificas').textContent = rocastorData.plantillas_especificas || 0;
+                    document.getElementById('procesosDocumentados').textContent = rocastorData.procesos_documentados || 0;
+
+                    console.log('✅ Datos Rocastor actualizados');
+                } else {
+                    console.warn('⚠️ Error cargando datos Rocastor:', rocastorResponse.status);
+                    // Valores por defecto
+                    document.getElementById('pdfsGuardados').textContent = '0';
+                    document.getElementById('plantillasGenerales').textContent = '0';
+                    document.getElementById('plantillasEspecificas').textContent = '0';
+                    document.getElementById('procesosDocumentados').textContent = '0';
+                }
+
+            } catch (error) {
+                console.error('❌ Error cargando datos Rocastor:', error);
+                // Valores por defecto en caso de error
+                document.getElementById('pdfsGuardados').textContent = '0';
+                document.getElementById('plantillasGenerales').textContent = '0';
+                document.getElementById('plantillasEspecificas').textContent = '0';
+                document.getElementById('procesosDocumentados').textContent = '0';
+            }
+        }
+
+        async function cargarDatosAdicionales() {
+            try {
+                console.log('🔄 Cargando datos adicionales...');
+
+                // Cargar información de Google Drive
+                await actualizarGoogleDrive();
+
+                console.log('✅ Datos adicionales cargados');
+            } catch (error) {
+                console.error('❌ Error cargando datos adicionales:', error);
+            }
+        }
+
+        async function actualizarGoogleDrive() {
+            try {
+                console.log('☁️ Actualizando datos de Google Drive...');
+                const driveResponse = await fetch('/drive-files');
+
+                if (driveResponse.ok) {
+                    const driveData = await driveResponse.json();
+                    console.log('☁️ Datos Drive:', driveData);
+
+                    if (driveData.success) {
+                        document.getElementById('archivosGoogleDrive').textContent = driveData.total_files || 0;
+                        document.getElementById('tamanoTotal').textContent = `${driveData.storage_used_mb || 0} MB`;
+                        document.getElementById('ultimoBackup').textContent = 'Hoy';
+                        document.getElementById('estadoOperacion').textContent = 'Operativo';
+                        document.getElementById('estadoOperacion').className = 'metric-status status-success';
+                    } else {
+                        document.getElementById('archivosGoogleDrive').textContent = '0';
+                        document.getElementById('tamanoTotal').textContent = '0 MB';
+                        document.getElementById('ultimoBackup').textContent = '-';
+                        document.getElementById('estadoOperacion').textContent = driveData.error || 'Error';
+                        document.getElementById('estadoOperacion').className = 'metric-status status-error';
+                    }
+                } else {
+                    console.warn('⚠️ Error obteniendo datos de Drive');
+                    document.getElementById('estadoOperacion').textContent = 'No disponible';
+                    document.getElementById('estadoOperacion').className = 'metric-status status-warning';
+                }
+            } catch (error) {
+                console.error('❌ Error actualizando Google Drive:', error);
+            }
+        }
+
+        function actualizarAlmacenamiento() {
+            const health = systemData.health;
+            const processes = systemData.processes;
+
+            if (health && health.google_drive_connected) {
+                // Si Google Drive está conectado
+                document.getElementById('archivosGoogleDrive').textContent = processes?.estadisticas?.google_drive_procesos || 0;
+                document.getElementById('tamanoTotal').textContent = '~ MB'; // Calcular si es necesario
+                document.getElementById('ultimoBackup').textContent = 'Hoy';
+                document.getElementById('estadoOperacion').textContent = 'Operativo';
+                document.getElementById('estadoOperacion').className = 'metric-status status-success';
+            } else {
+                document.getElementById('archivosGoogleDrive').textContent = '0';
+                document.getElementById('tamanoTotal').textContent = '0 MB';
+                document.getElementById('ultimoBackup').textContent = '-';
+                document.getElementById('estadoOperacion').textContent = 'Sin configurar';
+                document.getElementById('estadoOperacion').className = 'metric-status status-error';
+            }
+        }
+
+        function mostrarProcesosRecientes() {
+            const processes = systemData.processes;
+            const container = document.getElementById('ultimosProcesos');
+
+            if (processes && processes.procesos && processes.procesos.length > 0) {
+                const ultimos5 = processes.procesos.slice(0, 5);
+
+                container.innerHTML = ultimos5.map(proceso => `
+                    <div class="process-item">
+                        <div class="process-name">${proceso.carpeta_original || proceso.nombre_proceso}</div>
+                        <div class="process-details">
+                            📅 ${new Date(proceso.timestamp).toLocaleDateString('es-ES')} | 
+                            📄 ${proceso.archivos_procesados} archivos | 
+                            ✅ ${proceso.respuestas_encontradas} respuestas | 
+                            💰 $${(proceso.costo_openai_usd || 0).toFixed(4)}
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = `
+                    <div class="process-item">
+                        <div class="process-name">No hay procesos recientes</div>
+                        <div class="process-details">Los procesos aparecerán aquí después de analizar documentos</div>
+                    </div>
+                `;
+            }
+        }
+
+        function mostrarError(mensaje) {
+            console.error('🚨 Mostrando error:', mensaje);
+
+            // Remover errores anteriores
+            const existingErrors = document.querySelectorAll('.error-message');
+            existingErrors.forEach(error => error.remove());
+
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span>❌</span>
+                    <span>${mensaje}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" style="
+                        background: transparent;
+                        border: none;
+                        color: white;
+                        cursor: pointer;
+                        font-size: 18px;
+                        margin-left: auto;
+                    ">×</button>
+                </div>
+            `;
+            errorDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #ef4444;
+                color: white;
+                padding: 15px;
+                border-radius: 8px;
+                z-index: 1000;
+                max-width: 400px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                animation: slideIn 0.3s ease-out;
+            `;
+
+            document.body.appendChild(errorDiv);
+
+            // Auto-remover después de 8 segundos
+            setTimeout(() => {
+                if (errorDiv.parentNode) {
+                    errorDiv.style.animation = 'slideOut 0.3s ease-in';
+                    setTimeout(() => {
+                        if (errorDiv.parentNode) {
+                            errorDiv.parentNode.removeChild(errorDiv);
+                        }
+                    }, 300);
+                }
+            }, 8000);
+        }
+
+            function mostrarMensaje(mensaje) {
+                const errorContainer = document.getElementById('errorContainer');
+                errorContainer.innerHTML = `<div class="success-message">ℹ️ ${mensaje}</div>`;
+                errorContainer.style.display = 'block';
+                document.getElementById('loading').style.display = 'none';
+            }
+
+        // Funciones de acción
+        async function verificarSistema() {
+            document.getElementById('connectionStatus').className = 'status-indicator status-warning';
+            await cargarDatosSistema();
+        }
+
+        function abrirMonitor() {
+            window.open('/health', '_blank');
+        }
+
+        function exportarDatos() {
+            if (systemData.processes && systemData.processes.procesos) {
+                const dataStr = JSON.stringify(systemData.processes, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `robot_ai_export_${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        function actualizarCostos() {
+            window.open('/analytics-financiero', '_blank');
+        }
+
+        function generarReporteROI() {
+            alert('🚧 Funcionalidad en desarrollo - Reporte ROI próximamente');
+        }
+
+        function generarAlerta() {
+            alert('🔔 Sistema de alertas Rocastor próximamente');
+        }
+
+        async function verificarAlmacenamiento() {
+            try {
+                const response = await fetch('/drive-files');
+                const data = await response.json();
+                alert(`☁️ Google Drive: ${data.total_files || 0} archivos encontrados`);
+            } catch (error) {
+                alert('❌ Error verificando Google Drive: ' + error.message);
+            }
+        }
+
+        async function probarConexion() {
+            try {
+                const response = await fetch('/test-google-drive');
+                const data = await response.json();
+                if (data.status === 'success') {
+                    alert('✅ Conexión a Google Drive exitosa');
+                } else {
+                    alert('❌ Error en conexión: ' + data.message);
+                }
+            } catch (error) {
+                alert('❌ Error probando conexión: ' + error.message);
+            }
+        }
+
+        function actualizarActividad() {
+            // Recargar actividad reciente
+            cargarDatosSistema();
+        }
+
+        function limpiarLogs() {
+            alert('🧹 Función de limpieza de logs próximamente');
+        }
+
+        // Auto-actualización cada 2 minutos (reducido para evitar spam)
+        setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                console.log('🔄 Auto-actualizando datos...');
+                cargarDatosSistema();
+            }
+        }, 120000); // 2 minutos en lugar de 30 segundos
+
+        async function loadDriveInfo() {
+            try {
+                console.log('🔄 Cargando información de Google Drive...');
+                const response = await fetch('/drive-files');
+
+                 if (response.ok) {
+                    const data = await response.json();
+                    console.log('📊 Datos de Drive recibidos:', data);
+
+                     if (data.success !== false) {
+                        document.getElementById('archivosGoogleDrive').textContent = data.total_files || 0;
+                        document.getElementById('tamanoTotal').textContent = `${data.storage_used_mb || 0} MB`;
+
+                        //const driveLink = data.drive_folder_link || '#';
+                        //document.getElementById('driveFolder').innerHTML = 
+                         //   `<a href="${driveLink}" target="_blank" style="color: #4CAF50;">Ver Carpeta Drive</a>`;
+
+                        // Mostrar archivos recientes
+                        //const recentFilesContainer = document.getElementById('recentFiles');
+                        //if (data.recent_files && data.recent_files.length > 0) {
+                         //   recentFilesContainer.innerHTML = data.recent_files.slice(0, 3).map(file => `
+                         //       <div class="recent-file">
+                         //           <a href="${file.web_view_link}" target="_blank">${file.name}</a>
+                         //           <span class="file-size">${(file.size / 1024).toFixed(1)} KB</span>
+                         //       </div>
+                         //   `).join('');
+                       // } else {
+                       //     recentFilesContainer.innerHTML = '<p>No hay archivos recientes</p>';
+                       // }
+
+                        console.log('✅ Información de Drive cargada correctamente');
+                    } else {
+                        throw new Error(data.error || 'Google Drive no disponible');
+                    }
+                } else {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+            } catch (error) {
+                console.error('❌ Error cargando información de Drive:', error);
+                document.getElementById('archivosGoogleDrive').textContent = '0';
+                document.getElementById('tamanoTotal').textContent = '~ MB';
+                //document.getElementById('driveFolder').innerHTML = `<span style="color: #f44336;">Error: ${error.message}</span>`;
+               // document.getElementById('recentFiles').innerHTML = `<p style="color: #f44336;">Error: ${error.message}</p>`;
+
+                document.getElementById('archivosGoogleDrive').textContent = '0';
+                document.getElementById('tamanoTotal').textContent = '0 MB';
+                //document.getElementById('driveFolder').textContent = 'Error conectando';
+                //document.getElementById('recentFiles').innerHTML = '<p style="color: #f44336;">Error cargando archivos</p>';
+            }
+        }
+
+        async function loadSystemData() {
+             try {
+                console.log('📊 Cargando datos del sistema...');
+
+                const healthResponse = await fetch('/health');
+                const healthData = await healthResponse.json();
+
+                const processesResponse = await fetch('/lista-procesos');
+
+            if (!processesResponse.ok) {
+                throw new Error(`HTTP ${processesResponse.status}: ${processesResponse.statusText}`);
+            }
+
+                const processesData = await processesResponse.json();
+
+                console.log('✅ Datos del sistema cargados:', {
+                    health: healthData,
+                    processes: processesData
+                });
+
+                updateSystemStatus(healthData);
+                updateProcessesStats(processesData);
+                updateModulesStatus(healthData.modulos_estado || {});
+
+                // Intentar cargar datos de Google Drive
+                try {
+                    const driveResponse = await fetch('/drive-files');
+                    const driveData = await driveResponse.json();
+                    updateDriveStats(driveData);
+                } catch (driveError) {
+                    console.warn('⚠️ Error cargando Google Drive:', driveError);
+                    updateDriveStats({success: false, error: driveError.message});
+                }
+
+            } catch (error) {
+                console.error('❌ Error cargando datos:', error);
+                showError('Error cargando datos del sistema');
+            }
+        }
+
+        function updateProcessesStats(data) {
+            try {
+                console.log('📊 Actualizando estadísticas de procesos:', data);
+
+                // Verificar si la respuesta es exitosa
+                if (!data || !data.success) {
+                    console.warn('⚠️ Respuesta de procesos no exitosa:', data);
+                    document.getElementById('totalProcesos').textContent = '0';
+                    document.getElementById('procesosRevisados').textContent = '0';
+                    document.getElementById('procesosValidos').textContent = '0';
+                    document.getElementById('eficienciaPromedio').textContent = '0%';
+                    return;
+                }
+
+                const totalProcesos = data.total_procesos || 0;
+                const procesosArray = data.procesos || [];
+
+                // Calcular estadísticas
+                let procesosValidos = 0;
+                let respuestasEncontradas = 0;
+                let totalRespuestasPosibles = 0;
+
+                procesosArray.forEach(proceso => {
+                    if (proceso.tiene_datos_completos) {
+                        procesosValidos++;
+                    }
+
+                    respuestasEncontradas += proceso.respuestas_encontradas || 0;
+                    totalRespuestasPosibles += proceso.preguntas_analizadas || 0;
+                });
+
+                const eficiencia = totalRespuestasPosibles > 0 ? 
+                    Math.round((respuestasEncontradas / totalRespuestasPosibles) * 100) : 0;
+
+                // Actualizar valores
+                document.getElementById('totalProcesos').textContent = totalProcesos;
+                document.getElementById('procesosRevisados').textContent = procesosArray.length;
+                document.getElementById('procesosValidos').textContent = procesosValidos;
+                document.getElementById('eficienciaPromedio').textContent = eficiencia + '%';
+
+                console.log('📊 Estadísticas actualizadas:', {
+                    total: totalProcesos,
+                    revisados: procesosArray.length,
+                    validos: procesosValidos,
+                    eficiencia: eficiencia
+                });
+
+                 // Actualizar lista de procesos
+                updateProcessesList(processesArray);
+            } catch (error) {
+                console.error('❌ Error actualizando estadísticas:', error);
+                showError('Error procesando datos de procesos');
+            }
+        }
+
+        function updateProcessesList(processes) {
+            const container = document.getElementById('processesContainer');
+            if (!container) {
+                console.warn('⚠️ Container processesContainer no encontrado');
+                return;
+            }
+
+            if (!processes || !Array.isArray(processes) || processes.length === 0) {
+                container.innerHTML = '<div class="empty-state">📂 No hay procesos disponibles</div>';
+                return;
+            }
+
+            try {
+                container.innerHTML = processes.map(proceso => {
+                    // Validar que proceso sea un objeto válido
+                    if (!proceso || typeof proceso !== 'object') {
+                        console.warn('⚠️ Proceso inválido:', proceso);
+                        return '';
+                    }
+
+                    let timestamp = 'Sin fecha';
+                    try {
+                        if (proceso.timestamp) {
+                            timestamp = new Date(proceso.timestamp).toLocaleString('es-ES', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                        }
+                    } catch (timeError) {
+                        console.warn('⚠️ Error procesando timestamp:', timeError);
+                    }
+
+                    return `
+                        <div class="process-card">
+                            <div class="process-header">
+                                <h4>${proceso.carpeta_original || 'Sin carpeta'}</h4>
+                                <span class="process-badge">${proceso.storage_type || 'LOCAL'}</span>
+                            </div>
+                            <div class="process-stats">
+                                <div class="stat">
+                                    <span class="stat-label">Archivos</span>
+                                    <span class="stat-value">${proceso.archivos_totales || 0}</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-label">Respuestas</span>
+                                    <span class="stat-value">${proceso.respuestas_encontradas || 0}</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-label">Costo</span>
+                                    <span class="stat-value">$${(proceso.costo_openai_usd || 0).toFixed(4)}</span>
+                                </div>
+                            </div>
+                            <div class="process-info">
+                                <div class="process-time">📅 ${timestamp}</div>
+                                <div class="process-id">🔍 ${proceso.nombre_proceso || 'Sin ID'}</div>
+                            </div>
+                        </div>
+                    `;
+                }).filter(html => html !== '').join('');
+
+                console.log(`✅ Renderizados ${processes.length} procesos en el dashboard`);
+
+            } catch (error) {
+                console.error('❌ Error renderizando procesos:', error);
+                container.innerHTML = '<div class="empty-state">❌ Error cargando procesos</div>';
+            }
+        }
+
+         function updateModulesStatus(modulos) {
+             document.getElementById('openaiStatus').textContent = modulos.openai ? 'Activo' : 'Inactivo';
+            document.getElementById('openaiStatus').className = modulos.openai ? 'metric-status status-success' : 'metric-status status-error';
+
+            document.getElementById('googleDriveStatus').textContent = modulos.google_drive ? 'Conectado' : 'Desconectado';
+            document.getElementById('googleDriveStatus').className = modulos.google_drive ? 'metric-status status-success' : 'metric-status status-error';
+        }
+
+        function updateSystemStatus(health) {
+             if (health) {
+                // API Status
+                document.getElementById('apiStatus').textContent = 'Funcionando';
+                document.getElementById('apiStatus').className = 'metric-status status-success';
+
+                // Última actualización
+                const lastUpdate = new Date(health.timestamp).toLocaleTimeString('es-ES');
+                document.getElementById('lastUpdate').textContent = lastUpdate;
+            }
+        }
+
+        function updateDriveStats(driveData) {
+            if (driveData && driveData.success) {
+                document.getElementById('archivosGoogleDrive').textContent = driveData.total_files || 0;
+                document.getElementById('tamanoTotal').textContent = `${driveData.storage_used_mb || 0} MB`;
+                document.getElementById('ultimoBackup').textContent = 'Hoy';
+                document.getElementById('estadoOperacion').textContent = 'Operativo';
+                document.getElementById('estadoOperacion').className = 'metric-status status-success';
+            } else {
+                document.getElementById('archivosGoogleDrive').textContent = '0';
+                document.getElementById('tamanoTotal').textContent = '0 MB';
+                document.getElementById('ultimoBackup').textContent = '-';
+                document.getElementById('estadoOperacion').textContent = 'Sin configurar';
+                document.getElementById('estadoOperacion').className = 'metric-status status-error';
+            }
+        }
+    </script>
+</body>
+</html>
