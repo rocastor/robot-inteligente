@@ -6,6 +6,7 @@ Maneja las consultas a OpenAI y el análisis de preguntas con procesamiento para
 import asyncio
 import json
 import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
 import openai
