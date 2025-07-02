@@ -3,7 +3,6 @@ The `/lista-procesos` endpoint is corrected to handle errors gracefully when lis
 """
 from fastapi import FastAPI, File, UploadFile, HTTPException, status
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
-from concurrent.futures import ThreadPoolExecutor
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 import uvicorn
