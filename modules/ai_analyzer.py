@@ -399,9 +399,6 @@ def smart_chunk_selection(text_chunks, question):
         'anexos': ['anexos', 'formatos', 'documentos', 'certificado']
     }
 def get_optimized_prompt_template(question: str) -> str:
-    """
-    Genera un prompt optimizado para una pregunta específica, basado en reglas de precisión.
-    """
     instrucciones = """
 Eres un asistente experto en contratos y documentos públicos colombianos.
 
@@ -414,7 +411,6 @@ INSTRUCCIONES:
 
 RESPONDE SOLO con la información que se solicita.
 """
-
     return instrucciones + "\n\nDOCUMENTO:\n{chunk}\n\nPREGUNTA:\n{question}\n\nRESPUESTA:"
 
     question_lower = question.lower()
