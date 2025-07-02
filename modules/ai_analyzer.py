@@ -398,6 +398,24 @@ def smart_chunk_selection(text_chunks, question):
         'salud': ['salud', 'pensión', 'seguridad social', 'afiliación'],
         'anexos': ['anexos', 'formatos', 'documentos', 'certificado']
     }
+def get_optimized_prompt_template(question: str) -> str:
+    """
+    Genera un prompt optimizado para una pregunta específica, basado en reglas de precisión.
+    """
+    instrucciones = """
+Eres un asistente experto en contratos y documentos públicos colombianos.
+
+INSTRUCCIONES:
+- Analiza exhaustivamente el texto proporcionado.
+- Responde únicamente con base en el texto, sin agregar información externa.
+- Si la información no está, responde: "No se encontró información específica".
+- No uses frases como "El texto dice que...", "Según el documento...", etc.
+- Sé directo y conciso.
+
+RESPONDE SOLO con la información que se solicita.
+"""
+
+    return instrucciones + "\n\nDOCUMENTO:\n{chunk}\n\nPREGUNTA:\n{question}\n\nRESPUESTA:"
 
     question_lower = question.lower()
     relevant_keywords = []
